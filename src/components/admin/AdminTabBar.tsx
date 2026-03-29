@@ -1,6 +1,6 @@
 "use client";
 
-export type AdminTab = 'services' | 'products' | 'events' | 'notices' | 'requests' | 'members';
+export type AdminTab = 'services' | 'products' | 'events' | 'notices' | 'requests' | 'members' | 'history';
 
 interface TabDef {
   id: AdminTab;
@@ -14,6 +14,7 @@ const TABS: TabDef[] = [
   { id: 'notices', label: 'Notices' },
   { id: 'requests', label: 'Requests' },
   { id: 'members', label: 'Members' },
+  { id: 'history', label: 'History' },
 ];
 
 interface Props {

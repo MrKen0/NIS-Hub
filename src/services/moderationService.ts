@@ -23,7 +23,7 @@ import {
 import { db } from '@/lib/firebase/client';
 import type { ContentStatus, ServiceListing, ProductListing, CommunityEvent, CommunityNotice, HelpRequest } from '@/types/content';
 import type { UserProfile, UserStatus, UserRole } from '@/types/user';
-import type { ModerationActionType, ModerationTargetType } from '@/types/moderation';
+import type { ModerationAction, ModerationActionType, ModerationTargetType } from '@/types/moderation';
 
 // ---------- Firestore helpers (same pattern as browseService) ----------
 
@@ -214,6 +214,7 @@ export async function getPendingCounts(): Promise<{
   notices: number;
   requests: number;
   members: number;
+  history: number;
 }> {
   const pending = (collectionName: string) =>
     getDocs(query(
@@ -230,5 +231,44 @@ export async function getPendingCounts(): Promise<{
     pending('users'),
   ]);
 
-  return { services, products, events, notices, requests, members };
+  return { services, products, events, notices, requests, members, history: 0 };
+}
+
+// ---------- Moderation history ----------
+
+export async function getModerationHistory(filters?: {
+  actionType?: ModerationActionType;
+  targetType?: ModerationTargetType;
+}, max = 100): Promise<ModerationAction[]> {
+  const constraints = [];
+
+  if (filters?.actionType) {
+    constraints.push(where('actionType', '==', filters.actionType));
+  }
+  if (filters?.targetType) {
+    constraints.push(where('targetType', '==', filters.targetType));
+  }
+
+  constraints.push(orderBy('createdAt', 'desc'));
+  constraints.push(limit(max));
+
+  const q = query(collection(db, 'moderationActions'), ...constraints);
+  const snap = await getDocs(q);
+
+  return snap.docs.map((d) => {
+    const data = d.data();
+    return {
+      id: d.id,
+      actionType: data.actionType,
+      targetType: data.targetType,
+      targetId: data.targetId,
+      fieldChanged: data.fieldChanged,
+      previousValue: data.previousValue,
+      newValue: data.newValue,
+      moderatorId: data.moderatorId,
+      moderatorName: data.moderatorName,
+      reason: data.reason ?? undefined,
+      createdAt: toISO(data.createdAt),
+    } as ModerationAction;
+  });
 }

@@ -11,6 +11,7 @@ import AdminEventPanel from '@/components/admin/AdminEventPanel';
 import AdminNoticePanel from '@/components/admin/AdminNoticePanel';
 import AdminRequestPanel from '@/components/admin/AdminRequestPanel';
 import AdminMemberPanel from '@/components/admin/AdminMemberPanel';
+import AdminHistoryPanel from '@/components/admin/AdminHistoryPanel';
 import { getPendingCounts } from '@/services/moderationService';
 
 const EMPTY_COUNTS: Record<AdminTab, number> = {
@@ -20,6 +21,7 @@ const EMPTY_COUNTS: Record<AdminTab, number> = {
   notices: 0,
   requests: 0,
   members: 0,
+  history: 0,
 };
 
 export default function AdminPage() {
@@ -59,6 +61,7 @@ export default function AdminPage() {
           {activeTab === 'notices' && <AdminNoticePanel />}
           {activeTab === 'requests' && <AdminRequestPanel />}
           {activeTab === 'members' && <AdminMemberPanel />}
+          {activeTab === 'history' && <AdminHistoryPanel />}
         </div>
       </AppShell>
     </AdminGuard>
