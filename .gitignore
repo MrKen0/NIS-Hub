@@ -1,0 +1,20 @@
+node_modules
+.next
+out
+dist
+.env*
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.vscode/**
+tsconfig.tsbuildinfo
+.claude/settings.local.json
+ui-ux-pro-max-skill/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

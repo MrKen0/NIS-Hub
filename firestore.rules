@@ -1,0 +1,185 @@
+rules_version = '2';
+
+// =============================================================
+// NIS Hub — Firestore Security Rules
+// =============================================================
+// These rules control who can read and write data in the database.
+// They run on Firebase's servers — not in your app code.
+//
+// Role hierarchy:  member < provider < contributor < admin
+// Roles are stored in the user's Firestore document (users/{uid}.role).
+//
+// NOTE: We read roles from Firestore documents rather than custom claims
+// because the Admin SDK is not yet configured. When it is, we can migrate
+// to request.auth.token.role for better performance.
+// =============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------------------------------------------------------
+    // Helper functions — reusable checks
+    // -------------------------------------------------------
+
+    // Is the request from a signed-in user?
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Get the current user's profile document
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Does the signed-in user have a specific role?
+    function hasRole(role) {
+      return isSignedIn() && getUserData().role == role;
+    }
+
+    // Is the user a contributor or admin? (elevated privileges)
+    function isContributorOrAdmin() {
+      return isSignedIn()
+        && (getUserData().role == 'contributor' || getUserData().role == 'admin');
+    }
+
+    // Is the user an admin?
+    function isAdmin() {
+      return isSignedIn() && getUserData().role == 'admin';
+    }
+
+    // Is this the document owner?
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // -------------------------------------------------------
+    // Users collection
+    // -------------------------------------------------------
+    match /users/{userId} {
+      // Users can read their own profile; contributors/admins can read any
+      allow read: if isOwner(userId) || isContributorOrAdmin();
+
+      // Users can create their own profile on first sign-in (onboarding)
+      // Role must be "member" and status must be "pending" — no self-promotion
+      allow create: if isOwner(userId)
+        && request.resource.data.role == 'member'
+        && request.resource.data.status == 'pending';
+
+      // Owner can update their own profile BUT cannot change role, status,
+      // or onboardingComplete — only an admin can change those.
+      // This prevents self-escalation via browser console.
+      allow update: if (isOwner(userId)
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.status == resource.data.status
+        && request.resource.data.onboardingComplete == resource.data.onboardingComplete)
+        || isAdmin();
+
+      // Only admins can delete user profiles
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------
+    // Product Listings collection
+    // -------------------------------------------------------
+    match /productListings/{productId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid;
+
+      allow update: if isSignedIn()
+        && (resource.data.authorId == request.auth.uid || isContributorOrAdmin());
+
+      allow delete: if isSignedIn()
+        && (resource.data.authorId == request.auth.uid || isAdmin());
+    }
+
+    // -------------------------------------------------------
+    // Service Listings collection (renamed from services)
+    // -------------------------------------------------------
+    match /serviceListings/{serviceId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid;
+
+      allow update: if isSignedIn()
+        && (resource.data.authorId == request.auth.uid || isContributorOrAdmin());
+
+      allow delete: if isSignedIn()
+        && (resource.data.authorId == request.auth.uid || isAdmin());
+    }
+
+    // -------------------------------------------------------
+    // Requests collection (community help / tasks / goods)
+    // -------------------------------------------------------
+    match /requests/{requestId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid;
+
+      allow update: if isSignedIn()
+        && (resource.data.authorId == request.auth.uid || isContributorOrAdmin());
+
+      allow delete: if isSignedIn()
+        && (resource.data.authorId == request.auth.uid || isAdmin());
+    }
+
+    // -------------------------------------------------------
+    // Events collection + RSVPs subcollection
+    // -------------------------------------------------------
+    match /events/{eventId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid;
+
+      // Organiser or contributor/admin can edit
+      allow update: if isSignedIn()
+        && (resource.data.authorId == request.auth.uid || isContributorOrAdmin());
+
+      allow delete: if isSignedIn()
+        && (resource.data.authorId == request.auth.uid || isAdmin());
+
+      // RSVPs — each user manages their own RSVP
+      match /rsvps/{userId} {
+        allow read: if isSignedIn();
+        allow write: if isOwner(userId);
+      }
+    }
+
+    // -------------------------------------------------------
+    // Notices collection (announcements)
+    // -------------------------------------------------------
+    match /notices/{noticeId} {
+      // All signed-in users can read notices
+      allow read: if isSignedIn();
+
+      // Only contributors and admins can create/edit/delete notices
+      allow create: if isContributorOrAdmin();
+      allow update: if isContributorOrAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------
+    // Moderation actions log
+    // -------------------------------------------------------
+    match /moderationActions/{actionId} {
+      // Only contributors/admins can read and write moderation logs
+      allow read: if isContributorOrAdmin();
+      allow create: if isContributorOrAdmin();
+
+      // Moderation records are immutable — no updates or deletes
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // -------------------------------------------------------
+    // Catch-all: deny everything not explicitly allowed above
+    // -------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

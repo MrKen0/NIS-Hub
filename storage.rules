@@ -1,0 +1,54 @@
+rules_version = '2';
+
+// =============================================================
+// NIS Hub — Firebase Storage Security Rules
+// =============================================================
+// Controls who can upload, download, and delete files.
+//
+// Structure:
+//   content/{uid}/*    — private files owned by each user (profile pics, uploads)
+//   public/{resource}/* — publicly readable assets (event posters, notice images)
+// =============================================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // -------------------------------------------------------
+    // Private user content: content/{uid}/*
+    // -------------------------------------------------------
+    match /content/{uid}/{allPaths=**} {
+      // Only the file owner can read their own files; moderators/admins too
+      allow read: if request.auth != null
+        && (request.auth.uid == uid
+            || request.auth.token.role == 'moderator'
+            || request.auth.token.role == 'admin');
+
+      // Only the file owner can upload/update their own files
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        // Limit file size to 5 MB
+        && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // -------------------------------------------------------
+    // Public assets: public/{resource}/*
+    // -------------------------------------------------------
+    match /public/{resource}/{allPaths=**} {
+      // Anyone signed in can view public assets
+      allow read: if request.auth != null;
+
+      // Only moderators/admins can upload public assets
+      allow write: if request.auth != null
+        && (request.auth.token.role == 'moderator'
+            || request.auth.token.role == 'admin')
+        && request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // -------------------------------------------------------
+    // Catch-all: deny everything else
+    // -------------------------------------------------------
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
