@@ -1,88 +1,106 @@
 "use client";
 
-/**
- * Top Navigation Bar
- * -------------------
- * Sticky header with brand name and sign-out button.
- * Shows the user's display name when signed in.
- */
-
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import { useAuth } from "@/lib/auth/AuthContext";
 
 const navItems = [
-  { id: "home", label: "Home", href: "/", enabled: true },
-  { id: "services", label: "Services", href: "/services", enabled: true },
-  { id: "products", label: "Products", href: "/products", enabled: true },
-  { id: "events", label: "Events", href: "/events", enabled: true },
-  { id: "notices", label: "Notices", href: "/notices", enabled: true },
-  { id: "create", label: "Create", href: "/create", enabled: true },
+  { id: "home",     label: "Home",     href: "/" },
+  { id: "services", label: "Services", href: "/services" },
+  { id: "products", label: "Products", href: "/products" },
+  { id: "events",   label: "Events",   href: "/events" },
+  { id: "notices",  label: "Notices",  href: "/notices" },
+  { id: "create",   label: "Create",   href: "/create" },
 ];
 
 export default function TopNav() {
   const { user, profile } = useAuth();
+  const pathname = usePathname();
 
   async function handleSignOut() {
     await signOut(auth);
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-sm">
+    <header
+      className="sticky top-0 z-40 border-b"
+      style={{
+        background: 'rgba(255,255,255,0.97)',
+        borderColor: 'var(--color-border)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+      }}
+    >
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
         {/* Brand */}
-        <div>
-          <p className="text-xs uppercase tracking-widest text-blue-600">NIS Hub</p>
-          <h1 className="text-lg font-bold text-slate-900">Community in Stevenage</h1>
-        </div>
-
-        {/* Desktop nav + sign-out */}
-        <div className="flex items-center gap-2">
-          <div className="hidden gap-2 sm:flex">
-            {navItems.map((item) =>
-              item.enabled ? (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                >
-                  {item.label}
-                </Link>
-              ) : (
-                <span
-                  key={item.id}
-                  className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-400 cursor-not-allowed"
-                  title="Coming soon"
-                >
-                  {item.label}
-                </span>
-              )
-            )}
-            {profile?.role === "admin" && (
-              <Link
-                href="/admin"
-                className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-              >
-                Admin
-              </Link>
-            )}
-          </div>
-
-          {/* Sign-out button — visible on all screen sizes */}
-          {user && (
-            <button
-              onClick={handleSignOut}
-              className="ml-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 min-h-[44px]"
-              aria-label="Sign out"
+        <Link href="/" className="flex-shrink-0 group" style={{ textDecoration: 'none' }}>
+          <div className="flex items-center gap-2.5">
+            {/* Logo mark */}
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ background: 'var(--color-primary)' }}
             >
-              <span className="hidden sm:inline">
-                {profile?.displayName ? `${profile.displayName} · ` : ""}
-              </span>
-              Sign out
-            </button>
+              <span className="text-white font-bold text-sm leading-none">N</span>
+            </div>
+            <div>
+              <p
+                className="text-xs font-bold uppercase tracking-widest leading-none"
+                style={{ color: 'var(--color-primary)' }}
+              >
+                NIS Hub
+              </p>
+              <p className="text-xs text-slate-500 leading-tight hidden sm:block">
+                Naijas in Stevenage
+              </p>
+            </div>
+          </div>
+        </Link>
+
+        {/* Desktop nav */}
+        <nav className="hidden gap-1 sm:flex">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                className="rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                style={{
+                  color: isActive ? 'var(--color-primary)' : '#4B5563',
+                  background: isActive ? 'var(--color-primary-surface)' : 'transparent',
+                }}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+          {profile?.role === "admin" && (
+            <Link
+              href="/admin"
+              className="rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+              style={{ color: '#4B5563' }}
+            >
+              Admin
+            </Link>
           )}
-        </div>
+        </nav>
+
+        {/* Sign-out */}
+        {user && (
+          <button
+            onClick={handleSignOut}
+            className="flex-shrink-0 rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:bg-slate-50 min-h-[40px]"
+            style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted)' }}
+            aria-label="Sign out"
+          >
+            <span className="hidden sm:inline">
+              {profile?.displayName ? `${profile.displayName} · ` : ""}
+            </span>
+            Sign out
+          </button>
+        )}
       </div>
     </header>
   );

@@ -11,6 +11,14 @@ interface FormFieldProps {
   min?: string;
 }
 
+const inputClass = `
+  w-full rounded-xl border bg-white px-4 py-3 text-sm
+  text-slate-900 placeholder-slate-400
+  transition-colors
+  focus:outline-none focus:ring-2
+  focus:border-[#008753] focus:ring-[#008753]/20
+`.trim().replace(/\s+/g, ' ');
+
 export default function FormField({
   id,
   label,
@@ -26,11 +34,15 @@ export default function FormField({
   const inputId = id || `field-${label.toLowerCase().replace(/\s+/g, '-')}`;
 
   return (
-    <label className="space-y-1 text-sm font-medium text-slate-700" htmlFor={inputId}>
-      <span>
+    <div className="space-y-1.5">
+      <label
+        htmlFor={inputId}
+        className="block text-sm font-semibold"
+        style={{ color: 'var(--color-text)' }}
+      >
         {label}
-        {required ? ' *' : ''}
-      </span>
+        {required && <span className="ml-1 text-red-500">*</span>}
+      </label>
       {textarea ? (
         <textarea
           id={inputId}
@@ -38,7 +50,8 @@ export default function FormField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={rows}
-          className="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+          className={inputClass}
+          style={{ borderColor: 'var(--color-border)' }}
         />
       ) : (
         <input
@@ -48,9 +61,10 @@ export default function FormField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           min={min}
-          className="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+          className={inputClass}
+          style={{ borderColor: 'var(--color-border)' }}
         />
       )}
-    </label>
+    </div>
   );
 }

@@ -20,17 +20,22 @@ export default function SelectField({
   const inputId = id || `field-${label.toLowerCase().replace(/\s+/g, '-')}`;
 
   return (
-    <label className="space-y-1 text-sm font-medium text-slate-700" htmlFor={inputId}>
-      <span>
+    <div className="space-y-1.5">
+      <label
+        htmlFor={inputId}
+        className="block text-sm font-semibold"
+        style={{ color: 'var(--color-text)' }}
+      >
         {label}
-        {required ? ' *' : ''}
-      </span>
+        {required && <span className="ml-1 text-red-500">*</span>}
+      </label>
       <select
         id={inputId}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
-        className="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+        className="w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:border-[#008753] focus:ring-[#008753]/20 min-h-[44px]"
+        style={{ borderColor: 'var(--color-border)' }}
       >
         <option value="">{placeholder}</option>
         {options.map((opt) => (
@@ -39,6 +44,6 @@ export default function SelectField({
           </option>
         ))}
       </select>
-    </label>
+    </div>
   );
 }
