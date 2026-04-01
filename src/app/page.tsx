@@ -251,12 +251,12 @@ function HomeContent() {
       {isPending && (
         <div
           data-animate
-          style={{ '--anim-delay': '80ms' } as React.CSSProperties}
           className="rounded-xl p-4 flex gap-3"
           style={{
+            '--anim-delay': '80ms',
             background: '#FFFBEB',
             border: '1px solid #FDE68A',
-          }}
+          } as React.CSSProperties}
         >
           <div
             className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm"
@@ -295,14 +295,12 @@ function HomeContent() {
               key={card.href}
               href={card.href}
               data-animate
-              style={
-                { '--anim-delay': `${140 + i * 40}ms` } as React.CSSProperties
-              }
               className="group flex items-start gap-4 rounded-2xl bg-white p-4 sm:p-5 transition-all"
               style={{
+                '--anim-delay': `${140 + i * 40}ms`,
                 border: '1px solid var(--color-border)',
                 boxShadow: 'var(--shadow-card)',
-              }}
+              } as React.CSSProperties}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0,135,83,0.35)';
                 (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'var(--shadow-raise)';
