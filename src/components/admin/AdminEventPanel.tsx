@@ -1,19 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import AdminContentCard from './AdminContentCard';
 import ModerationConfirmDialog from './ModerationConfirmDialog';
 import StatusFilterBar from './StatusFilterBar';
 import type { ContentStatus, CommunityEvent } from '@/types/content';
-import { getEventsForReview, moderateContent } from '@/services/moderationService';
+import { subscribeToEventsForReview, moderateContent } from '@/services/moderationService';
+
+interface Props { onActionComplete?: () => void; }
 
 function fmtDate(iso: string) {
   if (!iso) return '—';
   return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-export default function AdminEventPanel() {
+export default function AdminEventPanel({ onActionComplete }: Props) {
   const { user, profile } = useAuth();
   const [items, setItems] = useState<CommunityEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,16 +25,17 @@ export default function AdminEventPanel() {
     docId: string; currentStatus: string; action: ContentStatus; title: string;
   } | null>(null);
 
-  const load = useCallback(() => {
+  // Real-time listener — auto-updates on remote changes; cleans up on unmount or filter change
+  useEffect(() => {
     setLoading(true);
     setError('');
-    getEventsForReview(statusFilter)
-      .then(setItems)
-      .catch(() => setError('Failed to load events.'))
-      .finally(() => setLoading(false));
+    const unsub = subscribeToEventsForReview(
+      statusFilter,
+      (data) => { setItems(data); setLoading(false); },
+      () => { setError('Failed to load events.'); setLoading(false); },
+    );
+    return unsub;
   }, [statusFilter]);
-
-  useEffect(() => { load(); }, [load]);
 
   async function handleAction(docId: string, currentStatus: string, newStatus: ContentStatus, reason?: string) {
     if (!user || !profile) return;
@@ -47,7 +50,7 @@ export default function AdminEventPanel() {
         moderatorName: profile.displayName,
         reason,
       });
-      load();
+      onActionComplete?.();
     } catch {
       setError('Failed to update status.');
     }

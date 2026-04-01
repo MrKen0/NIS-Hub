@@ -2,19 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─────────────────────────────────────────────────────────
+   DESIGN TOKENS
+   Nigerian green palette — clean, high-trust, mobile-first
+───────────────────────────────────────────────────────── */
 :root {
-  --brand-primary: #1d4ed8;
+  /* Brand identity */
+  --color-primary:         #008753;
+  --color-primary-dark:    #0B3D2E;
+  --color-primary-light:   #00A86B;
+  --color-primary-surface: #E8F5EE;
+  --color-gold:            #CFAF5A;
+
+  /* Backgrounds */
+  --color-bg:      #F5F1E8;
+  --color-surface: #FFFFFF;
+
+  /* Borders & text */
+  --color-border:  #E5E0D5;
+  --color-text:    #1F2937;
+  --color-muted:   #6B7280;
+
+  /* Radius */
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  20px;
+
+  /* Shadows */
+  --shadow-card:  0 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow-raise: 0 6px 24px rgba(0, 0, 0, 0.10);
+
+  /* Legacy aliases — keep so existing references still resolve */
+  --brand-primary:    #008753;
   --brand-on-primary: #ffffff;
-  --brand-secondary: #0ea5e9;
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --border: #e2e8f0;
-  --text: #0f172a;
-  --muted: #64748b;
-  --radius: 18px;
-  --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --brand-secondary:  #00A86B;
+  --bg:               #F5F1E8;
+  --surface:          #FFFFFF;
+  --border:           #E5E0D5;
+  --text:             #1F2937;
+  --muted:            #6B7280;
+  --radius:           16px;
+  --shadow-soft:      0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
+/* ─────────────────────────────────────────────────────────
+   BASE RESET
+───────────────────────────────────────────────────────── */
 * {
   box-sizing: border-box;
 }
@@ -27,16 +61,18 @@ body {
 body {
   margin: 0;
   font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.5;
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 a {
-  color: var(--brand-primary);
+  color: var(--color-primary);
   text-decoration: none;
 }
 
@@ -45,7 +81,7 @@ a:hover {
 }
 
 :focus-visible {
-  outline: 3px solid rgba(59, 130, 246, 0.65);
+  outline: 2px solid var(--color-primary);
   outline-offset: 3px;
 }
 
@@ -56,9 +92,10 @@ textarea {
   font: inherit;
 }
 
-body {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
+/* Balance headings (Podia pattern) */
+h1, h2, h3 {
+  text-wrap: balance;
+  letter-spacing: -0.015em;
 }
 
 @supports (padding: max(0px)) {
@@ -67,3 +104,30 @@ body {
   }
 }
 
+/* ─────────────────────────────────────────────────────────
+   SCROLL REVEAL ANIMATION
+   Pattern borrowed from Podia's animate-up system.
+   IntersectionObserver adds .is-visible; CSS does the rest.
+───────────────────────────────────────────────────────── */
+[data-animate] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity  0.45s ease,
+    transform 0.45s ease;
+  transition-delay: var(--anim-delay, 0ms);
+}
+
+[data-animate].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Skip animation for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  [data-animate] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

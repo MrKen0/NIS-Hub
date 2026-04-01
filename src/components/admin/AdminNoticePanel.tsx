@@ -8,7 +8,9 @@ import StatusFilterBar from './StatusFilterBar';
 import type { ContentStatus, CommunityNotice } from '@/types/content';
 import { getNoticesForReview, moderateContent } from '@/services/moderationService';
 
-export default function AdminNoticePanel() {
+interface Props { onActionComplete?: () => void; }
+
+export default function AdminNoticePanel({ onActionComplete }: Props) {
   const { user, profile } = useAuth();
   const [items, setItems] = useState<CommunityNotice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +45,7 @@ export default function AdminNoticePanel() {
         reason,
       });
       load();
+      onActionComplete?.();
     } catch {
       setError('Failed to update status.');
     }

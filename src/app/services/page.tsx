@@ -165,6 +165,7 @@ export default function ServicesBrowsePage() {
                 <Link
                   key={s.id}
                   href={`/services/${s.id}`}
+                  data-testid="service-card"
                   className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
                 >
                   <div className="flex items-start justify-between gap-2 mb-1">

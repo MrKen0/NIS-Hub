@@ -40,7 +40,20 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
     area: data.area ?? "",
     role: data.role,
     status: data.status,
-    intendedUse: data.intendedUse,
+    // Backward-compat: old docs have intendedUse (string), new docs have intendedUses (array).
+    // Invariant: "member" is always present; no duplicates.
+    // old "provider"     → ["member", "provider"]
+    // old "contributor"  → ["member", "contributor"]
+    // old "member"       → ["member"]
+    // new array missing "member" → "member" prepended
+    intendedUses: Array.from(new Set<import("@/types/user").IntendedUse>([
+      "member",
+      ...(Array.isArray(data.intendedUses)
+        ? (data.intendedUses as import("@/types/user").IntendedUse[])
+        : typeof data.intendedUse === "string" && data.intendedUse !== "member"
+          ? [data.intendedUse as import("@/types/user").IntendedUse]
+          : []),
+    ])),
     rulesAccepted: data.rulesAccepted ?? false,
     rulesAcceptedAt: data.rulesAcceptedAt?.toDate() ?? null,
     onboardingComplete: data.onboardingComplete ?? false,
@@ -80,7 +93,7 @@ export async function createUserProfile(
     role: "member",
     // All new users start as pending until an admin approves
     status: "pending",
-    intendedUse: onboarding.intendedUse,
+    intendedUses: onboarding.intendedUses,
     rulesAccepted: onboarding.rulesAccepted,
     rulesAcceptedAt: serverTimestamp(),
     onboardingComplete: true,

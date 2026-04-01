@@ -25,63 +25,99 @@ export default function MatchResultCard({ result, rank, preferredContact }: Prop
   const { service, score, explanation } = result;
 
   const hasWhatsApp = !!service.whatsapp;
-  const hasPhone = !!service.phone;
+  const hasPhone    = !!service.phone;
 
   return (
-    <div data-testid="match-card" className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm">
-      {/* Header */}
+    <div
+      data-testid="match-card"
+      className="rounded-2xl bg-white p-5 sm:p-6"
+      style={{
+        border: '1px solid var(--color-border)',
+        boxShadow: 'var(--shadow-card)',
+      }}
+    >
+      {/* Header row */}
       <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">
-              {rank}
-            </span>
-            <h3 className="font-semibold text-slate-900 line-clamp-1">
+        <div className="flex items-start gap-3 min-w-0">
+          {/* Rank badge */}
+          <span
+            className="flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold text-white mt-0.5"
+            style={{ background: 'var(--color-primary)' }}
+          >
+            {rank}
+          </span>
+          <div className="min-w-0">
+            <h3 className="font-bold text-[#1F2937] leading-snug line-clamp-1">
               {service.businessName}
             </h3>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>
+              {service.category}
+              {service.subcategory && service.subcategory !== 'Other'
+                ? ` · ${service.subcategory}`
+                : ''}
+            </p>
           </div>
-          <p className="text-sm text-slate-500">
-            {service.category}
-            {service.subcategory && service.subcategory !== 'Other'
-              ? ` \u2022 ${service.subcategory}`
-              : ''}
-          </p>
         </div>
-        <span className="flex-shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+
+        {/* Score badge */}
+        <span
+          className="flex-shrink-0 rounded-full px-2.5 py-1 text-xs font-bold"
+          style={{ background: 'var(--color-primary-surface)', color: 'var(--color-primary)' }}
+        >
           {score.total}/100
         </span>
       </div>
 
       {/* Description */}
       {service.description && (
-        <p className="text-sm text-slate-600 line-clamp-2 mb-3">
+        <p className="text-sm text-slate-600 line-clamp-2 mb-4 leading-relaxed">
           {service.description}
         </p>
       )}
 
-      {/* Details */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm mb-3">
-        <div className="flex gap-1">
-          <span className="text-slate-400">Areas:</span>
-          <span className="text-slate-700 font-medium truncate">
-            {service.serviceAreas.join(', ')}
+      {/* Details chips */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {service.serviceAreas.slice(0, 3).map((a) => (
+          <span
+            key={a}
+            className="rounded-full px-2.5 py-1 text-xs font-medium"
+            style={{ background: '#F3F4F6', color: '#374151' }}
+          >
+            {a}
           </span>
-        </div>
-        <div className="flex gap-1">
-          <span className="text-slate-400">Availability:</span>
-          <span className="text-slate-700 font-medium capitalize">
-            {service.availabilityType}
+        ))}
+        {service.serviceAreas.length > 3 && (
+          <span className="text-xs py-1" style={{ color: 'var(--color-muted)' }}>
+            +{service.serviceAreas.length - 3} more
           </span>
-        </div>
+        )}
+        <span
+          className="rounded-full px-2.5 py-1 text-xs font-medium capitalize ml-auto"
+          style={{ background: 'var(--color-primary-surface)', color: 'var(--color-primary)' }}
+        >
+          {service.availabilityType}
+        </span>
       </div>
 
       {/* Why this matched */}
-      <div data-testid="match-explanation" className="rounded-lg bg-slate-50 p-3 mb-3">
-        <p className="text-xs font-semibold text-slate-500 mb-1">Why this matched</p>
-        <ul className="space-y-0.5">
+      <div
+        data-testid="match-explanation"
+        className="rounded-xl p-3.5 mb-4"
+        style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)' }}
+      >
+        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--color-muted)' }}>
+          Why this matched
+        </p>
+        <ul className="space-y-1">
           {explanation.map((reason, i) => (
-            <li key={i} className="text-sm text-slate-600 flex items-start gap-1.5">
-              <span className="text-green-500 mt-0.5 flex-shrink-0" aria-hidden="true">&check;</span>
+            <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+              <span
+                className="flex-shrink-0 mt-0.5 font-bold"
+                style={{ color: 'var(--color-primary)' }}
+                aria-hidden="true"
+              >
+                ✓
+              </span>
               {reason}
             </li>
           ))}
@@ -89,35 +125,46 @@ export default function MatchResultCard({ result, rank, preferredContact }: Prop
       </div>
 
       {/* Contact buttons */}
-      <div className="flex gap-2 pt-3 border-t border-slate-100">
+      <div
+        className="flex gap-2 pt-4"
+        style={{ borderTop: '1px solid var(--color-border)' }}
+      >
         {hasWhatsApp && (
           <a
             href={formatWhatsAppUrl(service.whatsapp, service.businessName)}
             target="_blank"
             rel="noopener noreferrer"
-            className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition min-h-[44px] ${
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition min-h-[44px]"
+            style={
               preferredContact !== 'phone'
-                ? 'bg-green-600 text-white hover:bg-green-700'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
+                ? { background: 'var(--color-primary)', color: '#fff' }
+                : { background: '#F3F4F6', color: '#374151' }
+            }
           >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+            </svg>
             WhatsApp
           </a>
         )}
         {hasPhone && (
           <a
             href={formatPhoneUrl(service.phone)}
-            className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition min-h-[44px] ${
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition min-h-[44px]"
+            style={
               preferredContact === 'phone'
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
+                ? { background: 'var(--color-primary)', color: '#fff' }
+                : { background: '#F3F4F6', color: '#374151' }
+            }
           >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z" />
+            </svg>
             Call
           </a>
         )}
         {!hasWhatsApp && !hasPhone && (
-          <p className="text-sm text-slate-400">No contact details available</p>
+          <p className="text-sm" style={{ color: 'var(--color-muted)' }}>No contact details available</p>
         )}
       </div>
     </div>

@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { loginAsAdmin } from './admin-auth';
 import { getFirstPendingCard, getFirstContentCard, getFirstMemberCard, filterByStatus } from './helpers';
 
 test.describe('Moderation Flow', () => {
-  test.beforeEach(async ({ page }) => {
-    await loginAsAdmin(page);
-  });
+  // Moderation tests share mutable Firestore state — run sequentially to prevent
+  // workers from racing over the same pending/approved cards.
+  // Auth is handled by the admin storageState set in playwright.config.ts.
+  test.describe.configure({ mode: 'serial' });
 
   test('Admin can approve a pending service listing', async ({ page }) => {
     // -------------------------------------------------------
@@ -135,11 +135,17 @@ test.describe('Moderation Flow', () => {
     const title = await card.getByTestId('card-title').innerText();
     expect(title.length).toBeGreaterThan(0);
 
+    // Re-anchor to a title-specific locator so the reference stays stable
+    // if a Firestore subscription update re-renders the list before we click.
+    const stableCard = page.getByTestId('content-card').filter({
+      has: page.getByTestId('card-title').getByText(title, { exact: true }),
+    });
+
     // Verify the card currently shows APPROVED.
-    await expect(card.getByTestId('status-chip')).toHaveText('APPROVED');
+    await expect(stableCard.getByTestId('status-chip')).toHaveText('APPROVED');
 
     // Step 6: Click the Pause button scoped to this specific card.
-    await card.getByTestId('pause-btn').click();
+    await stableCard.getByTestId('pause-btn').click();
 
     // Step 7: The confirmation dialog should appear.
     const dialog = page.getByTestId('confirm-dialog');

@@ -20,12 +20,38 @@ export async function loginAsUser(page: Page): Promise<void> {
   }
 
   await page.goto('/auth/sign-in');
+
+  // When storageState has a valid Firebase auth token, the client-side auth
+  // guard redirects away from /auth/sign-in before the form is submitted.
+  // Wait up to 4 s for that redirect to fire — if it does we're already
+  // authenticated and can return without burning a password-verification call.
+  const alreadyAuthed = await page
+    .waitForURL((url) => !url.pathname.includes('/auth/sign-in'), { timeout: 4_000 })
+    .then(() => true)
+    .catch(() => false);
+
+  if (alreadyAuthed) return;
+
+  // No redirect yet — not authenticated via storageState; sign in with creds.
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: /sign in/i }).click();
 
-  // Wait for redirect away from sign-in page
-  await page.waitForURL((url) => !url.pathname.includes('/auth/sign-in'));
+  // Race between a successful redirect and an error alert appearing.
+  // Failing fast on an error avoids hanging for the full 30 s timeout.
+  //
+  // NOTE: We scope the alert to *inside* the <form> to avoid matching the
+  // Next.js App Router route-announcer, which is a page-level role="alert"
+  // element that is always visible (but empty) for screen-reader navigation.
+  const signInForm = page.locator('form');
+  const errorAlert = signInForm.getByRole('alert');
+  await Promise.race([
+    page.waitForURL((url) => !url.pathname.includes('/auth/sign-in'), { timeout: 45_000 }),
+    errorAlert.waitFor({ state: 'visible', timeout: 45_000 }).then(async () => {
+      const msg = await errorAlert.textContent();
+      throw new Error(`Sign-in failed: ${msg?.trim()}`);
+    }),
+  ]);
 }
 
 // ---------- Content creation helpers ----------
@@ -81,10 +107,23 @@ export async function createRequest(
   // Submit the form
   await page.getByRole('button', { name: /post request/i }).click();
 
-  // Wait for the success state to appear
-  await expect(page.getByTestId('see-matches-btn')).toBeVisible({
-    timeout: 15_000,
-  });
+  // If matching services exist the page shows a pre-submit preview screen
+  // before the final success state.  Click "Post my request anyway" to
+  // proceed whenever the preview appears, then fall through to the success
+  // state check below.
+  const postAnywayBtn = page.getByTestId('post-anyway-btn');
+  const successBtn = page.getByTestId('see-matches-btn');
+
+  // Race: preview or success — whichever arrives first
+  await Promise.race([
+    successBtn.waitFor({ state: 'visible', timeout: 15_000 }),
+    postAnywayBtn.waitFor({ state: 'visible', timeout: 15_000 }).then(() =>
+      postAnywayBtn.click(),
+    ),
+  ]);
+
+  // Wait for the success state to appear (may already be visible)
+  await expect(successBtn).toBeVisible({ timeout: 15_000 });
 }
 
 // ---------- Admin navigation helpers ----------

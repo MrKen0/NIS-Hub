@@ -98,6 +98,7 @@ export default function MyRequestsPage() {
                   <Link
                     key={r.id}
                     href={`/requests/${r.id}`}
+                    data-testid="request-card"
                     className={`block rounded-xl border bg-white p-4 shadow-sm transition-all ${
                       expired
                         ? 'border-slate-200 opacity-75'

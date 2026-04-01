@@ -144,6 +144,7 @@ export default function ProductsBrowsePage() {
                 <Link
                   key={p.id}
                   href={`/products/${p.id}`}
+                  data-testid="product-card"
                   className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
                 >
                   {/* Image or placeholder */}

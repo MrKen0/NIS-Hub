@@ -96,7 +96,7 @@ export default function RequestDetailPage() {
 
           {/* Request detail */}
           {request && (
-            <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+            <div data-testid="request-detail" className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
               {/* Header */}
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
                 <h1 className="text-xl font-bold mb-2 leading-snug">

@@ -10,7 +10,9 @@ export type UserRole = "member" | "provider" | "contributor" | "admin";
 // Where they are in the approval pipeline
 export type UserStatus = "pending" | "approved" | "paused" | "archived";
 
-// What they picked during onboarding as their intended use
+// What they picked during onboarding as their intended use.
+// "member" is the base identity — always present.
+// "provider" and "contributor" are optional additions.
 export type IntendedUse = "member" | "provider" | "contributor";
 
 // The full member profile stored in Firestore at users/{uid}
@@ -19,10 +21,10 @@ export interface UserProfile {
   email: string;
   displayName: string;
   phone: string;              // empty string if not provided
-  area: string;               // e.g. "Old Town", "Pin Green", "Bedwell"
+  area: string;               // e.g. "Old Town", "Pin Green", "Bedwell", or free text if "Other"
   role: UserRole;
   status: UserStatus;
-  intendedUse: IntendedUse;
+  intendedUses: IntendedUse[]; // always contains at least "member"
   rulesAccepted: boolean;
   rulesAcceptedAt: Date | null;
   onboardingComplete: boolean;
@@ -35,6 +37,6 @@ export interface OnboardingData {
   displayName: string;
   phone: string;
   area: string;
-  intendedUse: IntendedUse;
+  intendedUses: IntendedUse[]; // always contains at least "member"
   rulesAccepted: boolean;
 }

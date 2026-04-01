@@ -10,9 +10,9 @@ interface AppShellProps {
 
 export default function AppShell({ children }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen" style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}>
       <TopNav />
-      <main className="mx-auto max-w-6xl px-4 pb-28 pt-4 sm:px-6">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 pb-28 pt-5 sm:px-6">{children}</main>
       <BottomNav />
     </div>
   );

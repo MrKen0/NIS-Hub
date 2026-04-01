@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import StatusChip from '@/components/StatusChip';
 import ModerationConfirmDialog from './ModerationConfirmDialog';
-import { getUsersForReview, moderateUser } from '@/services/moderationService';
+import { subscribeToUsersForReview, moderateUser } from '@/services/moderationService';
 import type { UserProfile, UserStatus, UserRole } from '@/types/user';
 
 const STATUS_FILTERS: { label: string; value: UserStatus | undefined }[] = [
@@ -21,7 +21,9 @@ function fmtDate(d: Date) {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-export default function AdminMemberPanel() {
+interface Props { onActionComplete?: () => void; }
+
+export default function AdminMemberPanel({ onActionComplete }: Props) {
   const { user, profile } = useAuth();
   const [members, setMembers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,16 +38,16 @@ export default function AdminMemberPanel() {
     title: string;
   } | null>(null);
 
-  const load = useCallback(() => {
+  useEffect(() => {
     setLoading(true);
     setError('');
-    getUsersForReview(statusFilter)
-      .then(setMembers)
-      .catch(() => setError('Failed to load members.'))
-      .finally(() => setLoading(false));
+    const unsub = subscribeToUsersForReview(
+      statusFilter,
+      (data) => { setMembers(data); setLoading(false); },
+      () => { setError('Failed to load members.'); setLoading(false); },
+    );
+    return unsub;
   }, [statusFilter]);
-
-  useEffect(() => { load(); }, [load]);
 
   async function handleAction(
     uid: string,
@@ -65,7 +67,7 @@ export default function AdminMemberPanel() {
         moderatorName: profile.displayName,
         reason,
       });
-      load();
+      onActionComplete?.();
     } catch {
       setError('Failed to update member.');
     }
@@ -157,7 +159,7 @@ export default function AdminMemberPanel() {
                 </div>
                 <div className="flex gap-1">
                   <span className="text-slate-400">Intended:</span>
-                  <span className="text-slate-700 font-medium capitalize">{m.intendedUse}</span>
+                  <span className="text-slate-700 font-medium capitalize">{m.intendedUses.join(', ')}</span>
                 </div>
                 <div className="flex gap-1">
                   <span className="text-slate-400">Joined:</span>

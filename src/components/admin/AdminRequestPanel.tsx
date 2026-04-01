@@ -1,14 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import AdminContentCard from './AdminContentCard';
 import ModerationConfirmDialog from './ModerationConfirmDialog';
 import StatusFilterBar from './StatusFilterBar';
 import type { ContentStatus, HelpRequest } from '@/types/content';
-import { getRequestsForReview, moderateContent } from '@/services/moderationService';
+import { subscribeToRequestsForReview, moderateContent } from '@/services/moderationService';
 
-export default function AdminRequestPanel() {
+interface Props { onActionComplete?: () => void; }
+
+export default function AdminRequestPanel({ onActionComplete }: Props) {
   const { user, profile } = useAuth();
   const [items, setItems] = useState<HelpRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,16 +20,17 @@ export default function AdminRequestPanel() {
     docId: string; currentStatus: string; action: ContentStatus; title: string;
   } | null>(null);
 
-  const load = useCallback(() => {
+  // Real-time listener — auto-updates on remote changes; cleans up on unmount or filter change
+  useEffect(() => {
     setLoading(true);
     setError('');
-    getRequestsForReview(statusFilter)
-      .then(setItems)
-      .catch(() => setError('Failed to load requests.'))
-      .finally(() => setLoading(false));
+    const unsub = subscribeToRequestsForReview(
+      statusFilter,
+      (data) => { setItems(data); setLoading(false); },
+      () => { setError('Failed to load requests.'); setLoading(false); },
+    );
+    return unsub;
   }, [statusFilter]);
-
-  useEffect(() => { load(); }, [load]);
 
   async function handleAction(docId: string, currentStatus: string, newStatus: ContentStatus, reason?: string) {
     if (!user || !profile) return;
@@ -42,7 +45,7 @@ export default function AdminRequestPanel() {
         moderatorName: profile.displayName,
         reason,
       });
-      load();
+      onActionComplete?.();
     } catch {
       setError('Failed to update status.');
     }

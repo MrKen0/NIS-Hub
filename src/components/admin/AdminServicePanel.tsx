@@ -1,14 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import AdminContentCard from './AdminContentCard';
 import ModerationConfirmDialog from './ModerationConfirmDialog';
 import StatusFilterBar from './StatusFilterBar';
 import type { ContentStatus, ServiceListing } from '@/types/content';
-import { getServicesForReview, moderateContent } from '@/services/moderationService';
+import { subscribeToServicesForReview, moderateContent } from '@/services/moderationService';
 
-export default function AdminServicePanel() {
+interface Props { onActionComplete?: () => void; }
+
+export default function AdminServicePanel({ onActionComplete }: Props) {
   const { user, profile } = useAuth();
   const [items, setItems] = useState<ServiceListing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,16 +25,16 @@ export default function AdminServicePanel() {
     title: string;
   } | null>(null);
 
-  const load = useCallback(() => {
+  useEffect(() => {
     setLoading(true);
     setError('');
-    getServicesForReview(statusFilter)
-      .then(setItems)
-      .catch(() => setError('Failed to load services.'))
-      .finally(() => setLoading(false));
+    const unsub = subscribeToServicesForReview(
+      statusFilter,
+      (data) => { setItems(data); setLoading(false); },
+      () => { setError('Failed to load services.'); setLoading(false); },
+    );
+    return unsub;
   }, [statusFilter]);
-
-  useEffect(() => { load(); }, [load]);
 
   async function handleAction(docId: string, currentStatus: string, newStatus: ContentStatus, reason?: string) {
     if (!user || !profile) return;
@@ -47,7 +49,7 @@ export default function AdminServicePanel() {
         moderatorName: profile.displayName,
         reason,
       });
-      load();
+      onActionComplete?.();
     } catch {
       setError('Failed to update status.');
     }

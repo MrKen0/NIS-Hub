@@ -9,7 +9,7 @@
  */
 
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { firebaseConfig } from "./config";
@@ -20,6 +20,13 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 // --- Auth: handles sign-in, sign-out, and user sessions ---
 export const auth = getAuth(app);
+
+// Use localStorage for auth persistence so Playwright storageState() can
+// capture and replay auth tokens across test runs. Firebase 12+ defaults to
+// IndexedDB which Playwright cannot serialize; localStorage works correctly.
+if (typeof window !== "undefined") {
+  setPersistence(auth, browserLocalPersistence).catch(() => {});
+}
 
 // --- Firestore: the main database for all NIS Hub data ---
 export const db = getFirestore(app);

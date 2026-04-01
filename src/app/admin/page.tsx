@@ -28,12 +28,18 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>('services');
   const [pendingCounts, setPendingCounts] = useState(EMPTY_COUNTS);
 
-  // Load pending counts on mount and when tab changes (to refresh after moderation actions)
-  useEffect(() => {
+  // Fetch badge counts on mount and whenever the active tab changes.
+  // Also called by panels via onActionComplete after any moderation action,
+  // so the badge updates immediately without requiring a tab switch.
+  function refreshCounts() {
     getPendingCounts()
       .then(setPendingCounts)
       .catch(() => {});
-  }, [activeTab]);
+  }
+
+  useEffect(() => {
+    refreshCounts();
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <AdminGuard>
@@ -54,13 +60,13 @@ export default function AdminPage() {
             />
           </div>
 
-          {/* Active panel */}
-          {activeTab === 'services' && <AdminServicePanel />}
-          {activeTab === 'products' && <AdminProductPanel />}
-          {activeTab === 'events' && <AdminEventPanel />}
-          {activeTab === 'notices' && <AdminNoticePanel />}
-          {activeTab === 'requests' && <AdminRequestPanel />}
-          {activeTab === 'members' && <AdminMemberPanel />}
+          {/* Active panel — each receives onActionComplete to refresh badge counts */}
+          {activeTab === 'services' && <AdminServicePanel onActionComplete={refreshCounts} />}
+          {activeTab === 'products' && <AdminProductPanel onActionComplete={refreshCounts} />}
+          {activeTab === 'events' && <AdminEventPanel onActionComplete={refreshCounts} />}
+          {activeTab === 'notices' && <AdminNoticePanel onActionComplete={refreshCounts} />}
+          {activeTab === 'requests' && <AdminRequestPanel onActionComplete={refreshCounts} />}
+          {activeTab === 'members' && <AdminMemberPanel onActionComplete={refreshCounts} />}
           {activeTab === 'history' && <AdminHistoryPanel />}
         </div>
       </AppShell>

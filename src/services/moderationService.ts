@@ -15,6 +15,7 @@ import {
   orderBy,
   limit,
   getDocs,
+  onSnapshot,
   doc,
   updateDoc,
   addDoc,
@@ -54,7 +55,20 @@ function mapUserDoc(snap: { id: string; data: () => Record<string, unknown> }): 
     area: (d.area as string) ?? '',
     role: (d.role as UserRole) ?? 'member',
     status: (d.status as UserStatus) ?? 'pending',
-    intendedUse: (d.intendedUse as UserProfile['intendedUse']) ?? 'member',
+    // Backward-compat: old docs have intendedUse (string), new docs have intendedUses (array).
+    // Invariant: "member" is always present; no duplicates.
+    // old "provider"     → ["member", "provider"]
+    // old "contributor"  → ["member", "contributor"]
+    // old "member"       → ["member"]
+    // new array missing "member" → "member" prepended
+    intendedUses: Array.from(new Set<UserProfile['intendedUses'][number]>([
+      'member',
+      ...(Array.isArray(d.intendedUses)
+        ? (d.intendedUses as UserProfile['intendedUses'])
+        : typeof d.intendedUse === 'string' && d.intendedUse !== 'member'
+          ? [d.intendedUse as UserProfile['intendedUses'][number]]
+          : []),
+    ])),
     rulesAccepted: (d.rulesAccepted as boolean) ?? false,
     rulesAcceptedAt: d.rulesAcceptedAt && typeof d.rulesAcceptedAt === 'object' && 'toDate' in d.rulesAcceptedAt
       ? (d.rulesAcceptedAt as { toDate: () => Date }).toDate()
@@ -108,6 +122,78 @@ export function getNoticesForReview(statusFilter?: ContentStatus, max = 100) {
 
 export function getRequestsForReview(statusFilter?: ContentStatus, max = 100) {
   return queryCollection<HelpRequest>('requests', statusFilter, max);
+}
+
+// ---------- Real-time listeners (onSnapshot variants) ----------
+
+export function subscribeToServicesForReview(
+  statusFilter: ContentStatus | undefined,
+  onData: (items: ServiceListing[]) => void,
+  onError: (err: Error) => void,
+  max = 100,
+): () => void {
+  const constraints = [];
+  if (statusFilter) constraints.push(where('status', '==', statusFilter));
+  constraints.push(orderBy('createdAt', 'desc'));
+  constraints.push(limit(max));
+  const q = query(collection(db, 'serviceListings'), ...constraints);
+  return onSnapshot(q, (snap) => onData(snap.docs.map((d) => mapDoc<ServiceListing>(d))), onError);
+}
+
+export function subscribeToUsersForReview(
+  statusFilter: UserStatus | undefined,
+  onData: (users: UserProfile[]) => void,
+  onError: (err: Error) => void,
+  max = 200,
+): () => void {
+  const constraints = [];
+  if (statusFilter) constraints.push(where('status', '==', statusFilter));
+  constraints.push(orderBy('createdAt', 'desc'));
+  constraints.push(limit(max));
+  const q = query(collection(db, 'users'), ...constraints);
+  return onSnapshot(q, (snap) => onData(snap.docs.map(mapUserDoc)), onError);
+}
+
+export function subscribeToProductsForReview(
+  statusFilter: ContentStatus | undefined,
+  onData: (items: ProductListing[]) => void,
+  onError: (err: Error) => void,
+  max = 100,
+): () => void {
+  const constraints = [];
+  if (statusFilter) constraints.push(where('status', '==', statusFilter));
+  constraints.push(orderBy('createdAt', 'desc'));
+  constraints.push(limit(max));
+  const q = query(collection(db, 'productListings'), ...constraints);
+  return onSnapshot(q, (snap) => onData(snap.docs.map((d) => mapDoc<ProductListing>(d))), onError);
+}
+
+export function subscribeToEventsForReview(
+  statusFilter: ContentStatus | undefined,
+  onData: (items: CommunityEvent[]) => void,
+  onError: (err: Error) => void,
+  max = 100,
+): () => void {
+  const constraints = [];
+  if (statusFilter) constraints.push(where('status', '==', statusFilter));
+  constraints.push(orderBy('createdAt', 'desc'));
+  constraints.push(limit(max));
+  const q = query(collection(db, 'events'), ...constraints);
+  return onSnapshot(q, (snap) => onData(snap.docs.map((d) => mapDoc<CommunityEvent>(d))), onError);
+}
+
+export function subscribeToRequestsForReview(
+  statusFilter: ContentStatus | undefined,
+  onData: (items: HelpRequest[]) => void,
+  onError: (err: Error) => void,
+  max = 100,
+): () => void {
+  const constraints = [];
+  if (statusFilter) constraints.push(where('status', '==', statusFilter));
+  constraints.push(orderBy('createdAt', 'desc'));
+  constraints.push(limit(max));
+  const q = query(collection(db, 'requests'), ...constraints);
+  return onSnapshot(q, (snap) => onData(snap.docs.map((d) => mapDoc<HelpRequest>(d))), onError);
 }
 
 // ---------- Content status update + audit log ----------

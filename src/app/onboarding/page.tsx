@@ -6,8 +6,9 @@
  * Shown once after first sign-up. Collects:
  * - Display name
  * - Phone (optional)
- * - Area in Stevenage
- * - Intended use (member / provider / contributor)
+ * - Area in Stevenage ("Other" reveals a free-text input)
+ * - Participation intent — multi-select checkboxes
+ *   "member" is always on (base identity); "provider" and "contributor" are optional additions
  * - Acceptance of community rules
  *
  * Creates the Firestore user profile on submit.
@@ -17,39 +18,20 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { createUserProfile } from "@/services/userProfile";
 import { useRouter } from "next/navigation";
+import { STEVENAGE_AREAS } from "@/types/content";
 import type { IntendedUse } from "@/types/user";
 
-// Common areas in Stevenage for the dropdown
-const STEVENAGE_AREAS = [
-  "Bedwell",
-  "Broadwater",
-  "Chells",
-  "Great Ashby",
-  "Old Town",
-  "Pin Green",
-  "Shephall",
-  "St Nicholas",
-  "Symonds Green",
-  "Woodfield",
-  "Other",
-];
-
-// The three intended-use options
-const INTENDED_USE_OPTIONS: { value: IntendedUse; label: string; desc: string }[] = [
-  {
-    value: "member",
-    label: "Community Member",
-    desc: "Browse services, attend events, stay connected",
-  },
+// Optional participation intents the user can add on top of the base "member" identity
+const OPTIONAL_INTENTS: { value: Exclude<IntendedUse, "member">; label: string; desc: string }[] = [
   {
     value: "provider",
-    label: "Service Provider",
-    desc: "List your business, skills, or products",
+    label: "Service Provider / Seller",
+    desc: "List your business, skills, or products for the community",
   },
   {
     value: "contributor",
     label: "Contributor",
-    desc: "Request access to organise events, post notices, help moderate",
+    desc: "Organise events, post notices, or help moderate content",
   },
 ];
 
@@ -60,7 +42,9 @@ export default function OnboardingPage() {
   const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
   const [area, setArea] = useState("");
-  const [intendedUse, setIntendedUse] = useState<IntendedUse>("member");
+  const [areaOther, setAreaOther] = useState("");
+  // "member" is always included — users can additionally select provider / contributor
+  const [optionalIntents, setOptionalIntents] = useState<Set<Exclude<IntendedUse, "member">>>(new Set());
   const [rulesAccepted, setRulesAccepted] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -80,6 +64,26 @@ export default function OnboardingPage() {
     return null;
   }
 
+  function toggleIntent(value: Exclude<IntendedUse, "member">) {
+    setOptionalIntents((prev) => {
+      const next = new Set(prev);
+      if (next.has(value)) {
+        next.delete(value);
+      } else {
+        next.add(value);
+      }
+      return next;
+    });
+  }
+
+  // The area value actually stored: custom text if "Other" was selected, otherwise the dropdown value
+  function resolvedArea(): string {
+    if (area === "Other") {
+      return areaOther.trim() || "Other";
+    }
+    return area;
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -92,6 +96,10 @@ export default function OnboardingPage() {
       setError("Please select your area.");
       return;
     }
+    if (area === "Other" && !areaOther.trim()) {
+      setError("Please describe your area.");
+      return;
+    }
     if (!rulesAccepted) {
       setError("You must accept the community rules to continue.");
       return;
@@ -100,12 +108,14 @@ export default function OnboardingPage() {
 
     setSubmitting(true);
 
+    const intendedUses: IntendedUse[] = ["member", ...Array.from(optionalIntents)];
+
     try {
       await createUserProfile(user.uid, user.email ?? "", {
         displayName: displayName.trim(),
         phone: phone.trim(),
-        area,
-        intendedUse,
+        area: resolvedArea(),
+        intendedUses,
         rulesAccepted,
       });
 
@@ -210,7 +220,7 @@ export default function OnboardingPage() {
               id="area"
               required
               value={area}
-              onChange={(e) => setArea(e.target.value)}
+              onChange={(e) => { setArea(e.target.value); setAreaOther(""); }}
               className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent"
             >
               <option value="" disabled>
@@ -222,39 +232,99 @@ export default function OnboardingPage() {
                 </option>
               ))}
             </select>
+
+            {/* Reveal free-text input when "Other" is selected */}
+            {area === "Other" && (
+              <input
+                id="areaOther"
+                type="text"
+                required
+                autoComplete="off"
+                value={areaOther}
+                onChange={(e) => setAreaOther(e.target.value)}
+                placeholder="Describe your area (e.g. Martins Wood)"
+                className="mt-2 w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent"
+              />
+            )}
           </div>
 
-          {/* Intended use */}
+          {/* Participation intent */}
           <fieldset>
-            <legend className="block text-sm font-medium text-[var(--text)] mb-2">
+            <legend className="block text-sm font-medium text-[var(--text)] mb-1">
               How will you use NIS Hub?
             </legend>
+            <p className="text-xs text-[var(--muted)] mb-3">
+              All members can browse, attend events, and post requests. Tick anything extra that applies to you.
+            </p>
+
+            {/* "Member" — always on, not removable */}
+            <div className="flex items-start gap-3 p-3 rounded-xl border border-[var(--brand-primary)] bg-blue-50 mb-2 opacity-80">
+              <input
+                type="checkbox"
+                checked
+                readOnly
+                aria-label="Community Member — always included"
+                className="mt-0.5 w-4 h-4 accent-[var(--brand-primary)]"
+              />
+              <div>
+                <div className="font-medium text-sm text-[var(--text)]">Community Member</div>
+                <div className="text-xs text-[var(--muted)]">Browse services, attend events, stay connected</div>
+              </div>
+            </div>
+
+            {/* Optional intents */}
             <div className="space-y-2">
-              {INTENDED_USE_OPTIONS.map((opt) => (
-                <label
-                  key={opt.value}
-                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
-                    intendedUse === opt.value
-                      ? "border-[var(--brand-primary)] bg-blue-50"
-                      : "border-[var(--border)] bg-[var(--surface)]"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="intendedUse"
-                    value={opt.value}
-                    checked={intendedUse === opt.value}
-                    onChange={() => setIntendedUse(opt.value)}
-                    className="mt-0.5 accent-[var(--brand-primary)]"
-                  />
-                  <div>
-                    <div className="font-medium text-sm text-[var(--text)]">{opt.label}</div>
-                    <div className="text-xs text-[var(--muted)]">{opt.desc}</div>
-                  </div>
-                </label>
-              ))}
+              {OPTIONAL_INTENTS.map((opt) => {
+                const checked = optionalIntents.has(opt.value);
+                return (
+                  <label
+                    key={opt.value}
+                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                      checked
+                        ? "border-[var(--brand-primary)] bg-blue-50"
+                        : "border-[var(--border)] bg-[var(--surface)]"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleIntent(opt.value)}
+                      className="mt-0.5 w-4 h-4 accent-[var(--brand-primary)]"
+                    />
+                    <div>
+                      <div className="font-medium text-sm text-[var(--text)]">{opt.label}</div>
+                      <div className="text-xs text-[var(--muted)]">{opt.desc}</div>
+                    </div>
+                  </label>
+                );
+              })}
             </div>
           </fieldset>
+
+          {/* Privacy notice */}
+          <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-xs text-[var(--muted)] space-y-1">
+            <p className="font-semibold text-[var(--text)]">Your data and privacy</p>
+            <p>
+              When you join NIS Hub, we store your name, email address, phone number, and area
+              in Google Firebase (cloud-hosted, EU region). This information is used to run the
+              community, enable moderation, and connect you with local services.
+            </p>
+            <p>
+              Community moderators and admins can see your profile. Other members can see your
+              display name on content you post. Your phone number is only shared when you choose
+              to contact a service provider directly.
+            </p>
+            <p>
+              To request deletion of your data, email{" "}
+              <a
+                href="mailto:mrkeno@gmail.com"
+                className="underline hover:no-underline"
+              >
+                mrkeno@gmail.com
+              </a>
+              . By continuing you confirm you are 16 or over.
+            </p>
+          </div>
 
           {/* Community rules */}
           <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)]">
