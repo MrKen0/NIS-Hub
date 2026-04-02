@@ -87,8 +87,52 @@ service cloud.firestore {
       allow create: if isSignedIn()
         && request.resource.data.authorId == request.auth.uid;
 
-      allow update: if isSignedIn()
-        && (resource.data.authorId == request.auth.uid || isContributorOrAdmin());
+      // Two strictly field-scoped owner-update paths to prevent self-escalation:
+      //
+      // 1. Owner EDIT: content fields may change; status is forced to 'pending'.
+      //    authorId and createdAt are immutable.
+      //    Boost timestamps (lastRepublishedAt, surfacedAt) must not change —
+      //    owners cannot self-boost by piggybacking on an edit.
+      //    Moderation-only fields must not be touched.
+      //
+      // 2. Owner BOOST: only the three timestamp fields may change.
+      //    status, content fields, authorId and createdAt are all frozen.
+      //    hasOnly() enforces this at the key level.
+      //
+      // Moderators / admins retain unrestricted update access.
+      allow update: if isSignedIn() && (
+
+        // ── Owner EDIT path ──────────────────────────────────────────────────
+        (
+          resource.data.authorId == request.auth.uid
+          && request.resource.data.authorId  == resource.data.authorId   // immutable
+          && request.resource.data.createdAt == resource.data.createdAt  // immutable
+          // Boost timestamps must not change during an edit
+          && request.resource.data.lastRepublishedAt == resource.data.lastRepublishedAt
+          && request.resource.data.surfacedAt        == resource.data.surfacedAt
+          // Status must land on 'pending'
+          && request.resource.data.status == 'pending'
+          // Moderation-only fields must not be touched by owners
+          && !request.resource.data.diff(resource.data)
+                .affectedKeys()
+                .hasAny(['moderationNote', 'moderatedBy', 'moderatedAt'])
+        )
+
+        // ── Owner BOOST path ─────────────────────────────────────────────────
+        // Only the three timestamp fields may change; everything else is frozen.
+        || (
+          resource.data.authorId == request.auth.uid
+          && request.resource.data.authorId  == resource.data.authorId   // immutable
+          && request.resource.data.createdAt == resource.data.createdAt  // immutable
+          && request.resource.data.status    == resource.data.status     // unchanged
+          && request.resource.data.diff(resource.data)
+                .affectedKeys()
+                .hasOnly(['lastRepublishedAt', 'surfacedAt', 'updatedAt'])
+        )
+
+        // ── Moderator / admin: unrestricted ──────────────────────────────────
+        || isContributorOrAdmin()
+      );
 
       allow delete: if isSignedIn()
         && (resource.data.authorId == request.auth.uid || isAdmin());
@@ -103,8 +147,36 @@ service cloud.firestore {
       allow create: if isSignedIn()
         && request.resource.data.authorId == request.auth.uid;
 
-      allow update: if isSignedIn()
-        && (resource.data.authorId == request.auth.uid || isContributorOrAdmin());
+      // Identical two-path field-scoped rule to productListings above.
+      allow update: if isSignedIn() && (
+
+        // ── Owner EDIT path ──────────────────────────────────────────────────
+        (
+          resource.data.authorId == request.auth.uid
+          && request.resource.data.authorId  == resource.data.authorId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.lastRepublishedAt == resource.data.lastRepublishedAt
+          && request.resource.data.surfacedAt        == resource.data.surfacedAt
+          && request.resource.data.status == 'pending'
+          && !request.resource.data.diff(resource.data)
+                .affectedKeys()
+                .hasAny(['moderationNote', 'moderatedBy', 'moderatedAt'])
+        )
+
+        // ── Owner BOOST path ─────────────────────────────────────────────────
+        || (
+          resource.data.authorId == request.auth.uid
+          && request.resource.data.authorId  == resource.data.authorId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.status    == resource.data.status
+          && request.resource.data.diff(resource.data)
+                .affectedKeys()
+                .hasOnly(['lastRepublishedAt', 'surfacedAt', 'updatedAt'])
+        )
+
+        // ── Moderator / admin: unrestricted ──────────────────────────────────
+        || isContributorOrAdmin()
+      );
 
       allow delete: if isSignedIn()
         && (resource.data.authorId == request.auth.uid || isAdmin());

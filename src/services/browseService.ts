@@ -9,6 +9,7 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
+import { mapDoc } from '@/lib/firebase/mapDoc';
 import type { ServiceListing, ProductListing, CommunityEvent, CommunityNotice, HelpRequest } from '@/types/content';
 
 // ---------- helpers ----------
@@ -17,36 +18,34 @@ function today() {
   return new Date().toISOString().substring(0, 10);
 }
 
-/** Convert a Firestore Timestamp-like value to an ISO string. */
-function toISO(val: unknown): string {
-  if (val && typeof val === 'object' && 'toDate' in val && typeof (val as { toDate: () => Date }).toDate === 'function') {
-    return (val as { toDate: () => Date }).toDate().toISOString();
-  }
-  return typeof val === 'string' ? val : '';
-}
-
-function mapDoc<T>(snap: { id: string; data: () => Record<string, unknown> }): T {
-  const d = snap.data();
-  return {
-    ...d,
-    id: snap.id,
-    createdAt: toISO(d.createdAt),
-    updatedAt: toISO(d.updatedAt),
-  } as T;
+/**
+ * Compute the effective "surfaced at" ISO string for freshness sorting.
+ * Priority: surfacedAt > lastRepublishedAt > createdAt.
+ * This means a boosted listing always appears above un-boosted ones,
+ * and a newly created listing starts with its createdAt as the baseline.
+ */
+function effectiveSurfacedAt(item: ServiceListing | ProductListing): string {
+  return item.surfacedAt ?? item.lastRepublishedAt ?? item.createdAt;
 }
 
 // ---------- Service Listings ----------
 
 export async function getApprovedServices(max = 50): Promise<ServiceListing[]> {
+  // Firestore query unchanged — existing index on (status, expiresAt) still used.
   const q = query(
     collection(db, 'serviceListings'),
     where('status', '==', 'approved'),
     where('expiresAt', '>=', today()),
     orderBy('expiresAt'),
-    limit(max)
+    limit(max),
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => mapDoc<ServiceListing>(d));
+  const results = snap.docs.map((d) => mapDoc<ServiceListing>(d));
+
+  // JS secondary sort: most recently surfaced (boosted or created) first.
+  return results.sort((a, b) =>
+    effectiveSurfacedAt(b).localeCompare(effectiveSurfacedAt(a)),
+  );
 }
 
 export async function getServiceById(id: string): Promise<ServiceListing | null> {
@@ -63,10 +62,14 @@ export async function getApprovedProducts(max = 50): Promise<ProductListing[]> {
     where('status', '==', 'approved'),
     where('expiresAt', '>=', today()),
     orderBy('expiresAt'),
-    limit(max)
+    limit(max),
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => mapDoc<ProductListing>(d));
+  const results = snap.docs.map((d) => mapDoc<ProductListing>(d));
+
+  return results.sort((a, b) =>
+    effectiveSurfacedAt(b).localeCompare(effectiveSurfacedAt(a)),
+  );
 }
 
 export async function getProductById(id: string): Promise<ProductListing | null> {
@@ -83,7 +86,7 @@ export async function getApprovedEvents(max = 50): Promise<CommunityEvent[]> {
     where('status', '==', 'approved'),
     where('expiresAt', '>=', today()),
     orderBy('expiresAt'),
-    limit(max)
+    limit(max),
   );
   const snap = await getDocs(q);
   return snap.docs.map((d) => mapDoc<CommunityEvent>(d));
@@ -103,7 +106,7 @@ export async function getApprovedNotices(max = 50): Promise<CommunityNotice[]> {
     where('status', '==', 'approved'),
     where('expiresAt', '>=', today()),
     orderBy('expiresAt'),
-    limit(max)
+    limit(max),
   );
   const snap = await getDocs(q);
   return snap.docs.map((d) => mapDoc<CommunityNotice>(d));
@@ -122,7 +125,7 @@ export async function getMyRequests(uid: string, max = 50): Promise<HelpRequest[
     collection(db, 'requests'),
     where('authorId', '==', uid),
     orderBy('createdAt', 'desc'),
-    limit(max)
+    limit(max),
   );
   const snap = await getDocs(q);
   return snap.docs.map((d) => mapDoc<HelpRequest>(d));
@@ -134,7 +137,7 @@ export async function getApprovedRequests(max = 50): Promise<HelpRequest[]> {
     where('status', '==', 'approved'),
     where('expiresAt', '>=', today()),
     orderBy('expiresAt'),
-    limit(max)
+    limit(max),
   );
   const snap = await getDocs(q);
   return snap.docs.map((d) => mapDoc<HelpRequest>(d));

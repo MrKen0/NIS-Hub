@@ -24,9 +24,21 @@ export interface ProductFormData {
 interface ProductFormProps {
   defaultValues?: Partial<ProductFormData>;
   onSubmit: (data: ProductFormData) => Promise<void>;
+  /** Override the submit button label. Defaults to "Post Product". */
+  submitLabel?: string;
+  /** Pre-existing image URLs shown as removable thumbnails (edit mode). */
+  initialImageUrls?: string[];
+  /** Called when the user removes an existing image URL. */
+  onInitialImageUrlsChange?: (urls: string[]) => void;
 }
 
-export default function ProductForm({ defaultValues, onSubmit }: ProductFormProps) {
+export default function ProductForm({
+  defaultValues,
+  onSubmit,
+  submitLabel,
+  initialImageUrls = [],
+  onInitialImageUrlsChange,
+}: ProductFormProps) {
   const defaultExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().substring(0, 10);
 
   const [formData, setFormData] = useState<ProductFormData>({
@@ -108,6 +120,8 @@ export default function ProductForm({ defaultValues, onSubmit }: ProductFormProp
       <ImageUpload
         images={formData.images}
         onChange={(files) => setFormData(prev => ({ ...prev, images: files }))}
+        initialUrls={initialImageUrls}
+        onInitialUrlsChange={onInitialImageUrlsChange}
       />
 
       <div className="space-y-2">
@@ -174,7 +188,7 @@ export default function ProductForm({ defaultValues, onSubmit }: ProductFormProp
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <Button type="submit" disabled={submitting} className="w-full">
-        {submitting ? 'Uploading...' : 'Post Product'}
+        {submitting ? 'Saving...' : (submitLabel ?? 'Post Product')}
       </Button>
     </form>
   );

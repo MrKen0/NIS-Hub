@@ -81,6 +81,16 @@ function IconAdmin() {
     </svg>
   );
 }
+function IconMyListings() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <path d="M14 17h7M17 14v7" />
+    </svg>
+  );
+}
 // ─────────────────────────────────────────────────────────────
 
 const NAV_CARDS = [
@@ -119,6 +129,12 @@ const NAV_CARDS = [
     desc:  "Stay up to date with community announcements.",
     href:  "/notices",
     Icon:  IconNotices,
+  },
+  {
+    title: "My Listings",
+    desc:  "View, edit, and boost your service and product listings.",
+    href:  "/my-listings",
+    Icon:  IconMyListings,
   },
 ];
 
