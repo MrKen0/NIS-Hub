@@ -26,11 +26,12 @@ export default function StatusFilterBar({ value, onChange }: Props) {
             key={f.label}
             onClick={() => onChange(f.value)}
             data-testid={`filter-${f.value ?? 'all'}`}
-            className={`flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition min-h-[32px] ${
+            className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition min-h-[32px] hover:opacity-80"
+            style={
               active
-                ? 'bg-slate-800 text-white'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
+                ? { background: 'var(--color-primary-dark)', color: '#fff' }
+                : { background: 'var(--color-primary-surface)', color: 'var(--color-primary)' }
+            }
           >
             {f.label}
           </button>

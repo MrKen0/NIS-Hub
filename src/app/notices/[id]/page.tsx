@@ -66,7 +66,7 @@ export default function NoticeDetailPage() {
               title="Notice not found"
               message="This notice may have been removed or is not yet approved."
               action={
-                <button onClick={() => router.push('/notices')} className="text-sm font-medium text-blue-600 underline">
+                <button onClick={() => router.push('/notices')} className="text-sm font-medium underline" style={{ color: 'var(--color-primary)' }}>
                   Back to notices
                 </button>
               }
@@ -76,12 +76,12 @@ export default function NoticeDetailPage() {
           {notice && (
             <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
               {/* Header */}
-              <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
+              <div className="text-white p-6" style={{ background: 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)' }}>
                 <div className="flex items-center gap-3 mb-1">
                   <span className="text-2xl">{categoryIcon(notice.category)}</span>
                   <h1 className="text-2xl font-bold">{notice.title}</h1>
                 </div>
-                <p className="text-purple-100 text-sm">
+                <p className="text-sm" style={{ color: '#A7F3D0' }}>
                   {notice.category} &middot; Posted {formatDateLong(notice.createdAt)}
                 </p>
               </div>

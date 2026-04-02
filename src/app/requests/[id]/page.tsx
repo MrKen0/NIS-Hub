@@ -86,7 +86,8 @@ export default function RequestDetailPage() {
               action={
                 <button
                   onClick={() => router.push('/requests')}
-                  className="text-sm font-medium text-blue-600 underline"
+                  className="text-sm font-medium underline"
+                  style={{ color: 'var(--color-primary)' }}
                 >
                   Back to my requests
                 </button>
@@ -98,7 +99,7 @@ export default function RequestDetailPage() {
           {request && (
             <div data-testid="request-detail" className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
               {/* Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
+              <div className="text-white p-6" style={{ background: 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)' }}>
                 <h1 className="text-xl font-bold mb-2 leading-snug">
                   {request.text.length > 80
                     ? request.text.slice(0, 80) + '...'
@@ -186,7 +187,8 @@ export default function RequestDetailPage() {
                   ) : request.status === 'approved' ? (
                     <Link
                       href={`/requests/${request.id}/matches`}
-                      className="flex items-center justify-center w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors min-h-[44px]"
+                      className="flex items-center justify-center w-full rounded-xl px-4 py-3 text-sm font-semibold text-white min-h-[44px] transition-opacity hover:opacity-90"
+                      style={{ background: 'var(--color-primary)' }}
                     >
                       See matching services
                     </Link>

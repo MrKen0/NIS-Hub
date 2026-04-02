@@ -38,14 +38,18 @@ export default function NoticesBrowsePage() {
       <AppShell>
         <div className="max-w-2xl mx-auto">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-slate-900">Notices</h1>
-            <p className="text-sm text-slate-600">Community announcements and updates</p>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text)' }}>Notices</h1>
+            <p className="text-sm" style={{ color: 'var(--color-muted)' }}>Community announcements and updates</p>
           </div>
 
           {loading && (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="rounded-xl border border-slate-200 bg-white p-4 animate-pulse">
+                <div
+                  key={i}
+                  className="rounded-xl bg-white p-4 animate-pulse"
+                  style={{ border: '1px solid var(--color-border)' }}
+                >
                   <div className="h-5 w-2/3 bg-slate-200 rounded mb-2" />
                   <div className="h-4 w-full bg-slate-100 rounded mb-1" />
                   <div className="h-4 w-3/4 bg-slate-100 rounded" />
@@ -70,17 +74,18 @@ export default function NoticesBrowsePage() {
                 <Link
                   key={n.id}
                   href={`/notices/${n.id}`}
-                  className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
+                  className="block rounded-xl bg-white p-4 card-lift"
+                  style={{ border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-card)' }}
                 >
                   <div className="flex items-start gap-3">
                     <span className="text-xl flex-shrink-0">{categoryIcon(n.category)}</span>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-slate-900 line-clamp-1">{n.title}</h3>
-                      <p className="text-sm text-slate-600 line-clamp-2 mt-1">{n.body}</p>
+                      <h3 className="font-semibold line-clamp-1" style={{ color: 'var(--color-text)' }}>{n.title}</h3>
+                      <p className="text-sm line-clamp-2 mt-1" style={{ color: 'var(--color-muted)' }}>{n.body}</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs text-slate-400">{n.category}</span>
-                        <span className="text-xs text-slate-400">&middot;</span>
-                        <span className="text-xs text-slate-400">{formatDate(n.createdAt)}</span>
+                        <span className="text-xs" style={{ color: 'var(--color-muted)' }}>{n.category}</span>
+                        <span className="text-xs" style={{ color: 'var(--color-muted)' }}>&middot;</span>
+                        <span className="text-xs" style={{ color: 'var(--color-muted)' }}>{formatDate(n.createdAt)}</span>
                       </div>
                     </div>
                   </div>

@@ -24,7 +24,7 @@ const STATUS_LABELS: Record<string, string> = {
 // ── Icon components ──────────────────────────────────────────
 function IconServices() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="7" />
       <path d="M21 21l-4.35-4.35" />
     </svg>
@@ -32,7 +32,7 @@ function IconServices() {
 }
 function IconProducts() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
       <line x1="3" y1="6" x2="21" y2="6" />
       <path d="M16 10a4 4 0 01-8 0" />
@@ -41,7 +41,7 @@ function IconProducts() {
 }
 function IconRequests() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
       <polyline points="14 2 14 8 20 8" />
       <line x1="16" y1="13" x2="8" y2="13" />
@@ -52,7 +52,7 @@ function IconRequests() {
 }
 function IconPost() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="9" />
       <path d="M12 8v8M8 12h8" />
     </svg>
@@ -60,7 +60,7 @@ function IconPost() {
 }
 function IconEvents() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="4" width="18" height="18" rx="2" />
       <path d="M16 2v4M8 2v4M3 10h18" />
     </svg>
@@ -68,7 +68,7 @@ function IconEvents() {
 }
 function IconNotices() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
       <path d="M13.73 21a2 2 0 01-3.46 0" />
     </svg>
@@ -76,8 +76,15 @@ function IconNotices() {
 }
 function IconAdmin() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  );
+}
+function IconChevron() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18l6-6-6-6" />
     </svg>
   );
 }
@@ -179,30 +186,44 @@ function HomeContent() {
   const isPending = profile.status === "pending";
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5">
+    <div className="max-w-2xl mx-auto space-y-6">
 
       {/* ── Hero card ─────────────────────────────────── */}
       <section
         data-animate
-        className="rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden"
+        className="rounded-2xl text-white relative overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, #0B3D2E 0%, #008753 100%)',
+          background: 'linear-gradient(145deg, #0B3D2E 0%, #005C38 55%, #008753 100%)',
+          padding: '2rem 1.5rem',
+          minHeight: '240px',
         }}
       >
-        {/* Subtle decorative ring */}
+        {/* Gold hairline top border */}
         <div
-          className="pointer-events-none absolute -top-16 -right-16 w-56 h-56 rounded-full opacity-10"
-          style={{ border: '40px solid #fff' }}
+          className="pointer-events-none absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl"
+          style={{ background: 'var(--color-gold)', opacity: 0.7 }}
+          aria-hidden="true"
+        />
+        {/* Large decorative ring — top right */}
+        <div
+          className="pointer-events-none absolute -top-20 -right-20 w-72 h-72 rounded-full"
+          style={{ border: '50px solid #fff', opacity: 0.07 }}
+          aria-hidden="true"
+        />
+        {/* Small gold ring — bottom left */}
+        <div
+          className="pointer-events-none absolute -bottom-10 -left-10 w-40 h-40 rounded-full"
+          style={{ border: '28px solid var(--color-gold)', opacity: 0.08 }}
           aria-hidden="true"
         />
 
         <p
-          className="text-xs font-bold uppercase tracking-widest mb-3"
+          className="text-xs font-bold uppercase tracking-widest mb-2"
           style={{ color: '#6EE7B7' }}
         >
           Welcome back
         </p>
-        <h1 className="text-2xl sm:text-3xl font-bold leading-tight">
+        <h1 className="text-3xl sm:text-4xl font-bold leading-tight">
           {profile.displayName}
         </h1>
         <p className="mt-1 text-sm" style={{ color: '#A7F3D0' }}>
@@ -232,14 +253,14 @@ function HomeContent() {
         <div className="mt-6 flex gap-3">
           <Link
             href="/services"
-            className="flex-1 rounded-xl py-3 text-center text-sm font-bold transition-colors"
+            className="flex-1 rounded-xl py-3 text-center text-sm font-bold transition-opacity hover:opacity-90"
             style={{ background: '#fff', color: 'var(--color-primary-dark)' }}
           >
             Browse Services
           </Link>
           <Link
             href="/create/request"
-            className="flex-1 rounded-xl py-3 text-center text-sm font-bold transition-colors"
+            className="flex-1 rounded-xl py-3 text-center text-sm font-bold transition-opacity hover:opacity-80"
             style={{ background: 'rgba(255,255,255,0.12)', color: '#fff', border: '1px solid rgba(255,255,255,0.25)' }}
           >
             Post a Request
@@ -295,24 +316,17 @@ function HomeContent() {
               key={card.href}
               href={card.href}
               data-animate
-              className="group flex items-start gap-4 rounded-2xl bg-white p-4 sm:p-5 transition-all"
+              className="group flex items-start gap-4 rounded-2xl p-5 sm:p-6 card-lift"
               style={{
                 '--anim-delay': `${140 + i * 40}ms`,
+                background: '#FEFDFB',
                 border: '1px solid var(--color-border)',
                 boxShadow: 'var(--shadow-card)',
               } as React.CSSProperties}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0,135,83,0.35)';
-                (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'var(--shadow-raise)';
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--color-border)';
-                (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'var(--shadow-card)';
-              }}
             >
               {/* Icon box */}
               <div
-                className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                className="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center"
                 style={{ background: 'var(--color-primary-surface)', color: 'var(--color-primary)' }}
               >
                 <card.Icon />
@@ -332,12 +346,12 @@ function HomeContent() {
                   {card.desc}
                 </p>
               </div>
-              {/* Arrow */}
+              {/* Chevron */}
               <span
-                className="flex-shrink-0 mt-0.5 text-lg font-light transition-transform group-hover:translate-x-0.5"
+                className="flex-shrink-0 mt-1 transition-transform group-hover:translate-x-1"
                 style={{ color: 'var(--color-border)' }}
               >
-                →
+                <IconChevron />
               </span>
             </Link>
           ))}
@@ -350,16 +364,16 @@ function HomeContent() {
         style={
           {
             '--anim-delay': '380ms',
-            background: '#fff',
-            border: '1px solid var(--color-border)',
+            background: 'var(--color-primary-surface)',
+            border: '1px solid rgba(0,135,83,0.12)',
             borderRadius: '16px',
-            padding: '20px',
+            padding: '24px',
           } as React.CSSProperties
         }
       >
         <p
           className="text-xs font-bold uppercase tracking-widest mb-4"
-          style={{ color: 'var(--color-primary)' }}
+          style={{ color: 'var(--color-gold)' }}
         >
           How NIS Hub works
         </p>
@@ -367,8 +381,11 @@ function HomeContent() {
           {HOW_IT_WORKS.map((item) => (
             <div key={item.step} className="flex gap-3 items-start">
               <span
-                className="flex-shrink-0 w-6 h-6 rounded-full text-white text-xs font-bold flex items-center justify-center"
-                style={{ background: 'var(--color-primary)' }}
+                className="flex-shrink-0 w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center"
+                style={{
+                  background: 'var(--color-primary)',
+                  boxShadow: '0 0 0 3px rgba(207,175,90,0.25)',
+                }}
               >
                 {item.step}
               </span>
@@ -405,23 +422,16 @@ function HomeContent() {
           </p>
           <Link
             href="/admin"
-            className="group flex items-start gap-4 rounded-2xl bg-white p-4 sm:p-5 transition-all"
+            className="group flex items-start gap-4 rounded-2xl p-5 sm:p-6 card-lift"
             style={{
+              background: '#FEFDFB',
               border: '1px solid var(--color-border)',
               boxShadow: 'var(--shadow-card)',
             }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0,135,83,0.35)';
-              (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'var(--shadow-raise)';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--color-border)';
-              (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'var(--shadow-card)';
-            }}
           >
             <div
-              className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: '#F3F4F6', color: '#374151' }}
+              className="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{ background: 'var(--color-primary-surface)', color: 'var(--color-primary)' }}
             >
               <IconAdmin />
             </div>
@@ -434,10 +444,10 @@ function HomeContent() {
               </p>
             </div>
             <span
-              className="flex-shrink-0 mt-0.5 text-lg font-light transition-transform group-hover:translate-x-0.5"
+              className="flex-shrink-0 mt-1 transition-transform group-hover:translate-x-1"
               style={{ color: 'var(--color-border)' }}
             >
-              →
+              <IconChevron />
             </span>
           </Link>
         </div>

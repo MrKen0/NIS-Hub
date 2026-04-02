@@ -51,10 +51,10 @@ export default function RequestMatchesPage() {
     <AuthGuard>
       <AppShell>
         <div className="max-w-lg mx-auto">
-          <h1 className="text-2xl font-bold text-slate-900 mb-1">
+          <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--color-text)' }}>
             Matching Services
           </h1>
-          <p className="text-sm text-slate-600 mb-6">
+          <p className="text-sm mb-6" style={{ color: 'var(--color-muted)' }}>
             {request
               ? `Based on your request: "${request.text.length > 60 ? request.text.slice(0, 60) + '...' : request.text}"`
               : 'Finding the best matches for your request...'}
