@@ -1,16 +1,17 @@
 "use client";
 
-import Link from 'next/link';
-import AuthGuard from '@/components/AuthGuard';
+import { useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
 
 /**
  * Community Guidelines page.
  *
- * Layout note: AuthGuard + AppShell are used for structural consistency
- * with all other pages. The page content itself has no dependency on
- * signed-in state — it can be made publicly accessible in a future
- * iteration without any layout redesign.
+ * Publicly accessible — no AuthGuard. AuthProvider is available from the
+ * root layout so AppShell/TopNav work safely for unauthenticated visitors
+ * (sign-out button is behind {user && ...}, admin link behind optional chaining).
+ *
+ * Linked from the sign-up page so prospective members can read the rules
+ * before creating an account.
  */
 
 const GUIDELINES = [
@@ -59,9 +60,10 @@ const GUIDELINES = [
 ];
 
 export default function RulesPage() {
+  const router = useRouter();
+
   return (
-    <AuthGuard>
-      <AppShell>
+    <AppShell>
         <div className="max-w-2xl mx-auto pb-8">
 
           {/* ── Hero ─────────────────────────────────────── */}
@@ -132,17 +134,16 @@ export default function RulesPage() {
 
           {/* ── Back link ────────────────────────────────── */}
           <div className="mt-4 text-center">
-            <Link
-              href="/"
-              className="text-sm font-medium"
-              style={{ color: 'var(--color-primary)' }}
+            <button
+              onClick={() => router.back()}
+              className="text-sm font-medium hover:underline"
+              style={{ color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             >
-              ← Back to Home
-            </Link>
+              ← Go back
+            </button>
           </div>
 
         </div>
       </AppShell>
-    </AuthGuard>
   );
 }
