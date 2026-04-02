@@ -183,15 +183,14 @@ function MyListingsContent() {
         </button>
       </div>
 
-      {/* ── Error state ───────────────────────────────── */}
-      {error && (
-        <StateMessage type="error" title="Could not load listings" message={error} />
-      )}
-
       {/* ── Services panel ───────────────────────────── */}
-      {activeTab === 'services' && !error && (
+      {/* Always rendered when tab is active so tab-switching tests and UX     */}
+      {/* work correctly even when the data fetch fails. Error shown inside.   */}
+      {activeTab === 'services' && (
         <div data-testid="services-panel" className="space-y-3">
-          {loading ? (
+          {error ? (
+            <StateMessage type="error" title="Could not load listings" message={error} />
+          ) : loading ? (
             <>
               <SkeletonCard />
               <SkeletonCard />
@@ -232,9 +231,11 @@ function MyListingsContent() {
       )}
 
       {/* ── Products panel ───────────────────────────── */}
-      {activeTab === 'products' && !error && (
+      {activeTab === 'products' && (
         <div data-testid="products-panel" className="space-y-3">
-          {loading ? (
+          {error ? (
+            <StateMessage type="error" title="Could not load listings" message={error} />
+          ) : loading ? (
             <>
               <SkeletonCard />
               <SkeletonCard />

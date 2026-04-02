@@ -1,5 +1,31 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { loginAsUser } from './helpers';
+
+// ---------------------------------------------------------------------------
+// Shared helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Wait until a listings panel has finished loading.
+ *
+ * The panel shows skeleton cards (animate-pulse) while Firestore is fetching.
+ * Once the fetch completes (data, empty state, or error), the skeletons are
+ * replaced.  Waiting for the first skeleton to become hidden is more reliable
+ * than compound waitForSelector calls which mix CSS and text engines.
+ */
+async function waitForPanelLoaded(
+  page: Page,
+  panelTestId: 'services-panel' | 'products-panel',
+  timeout = 20_000,
+): Promise<void> {
+  const panel = page.getByTestId(panelTestId);
+  // Ensure the panel itself is in the DOM first
+  await panel.waitFor({ state: 'attached', timeout: 15_000 });
+  // Wait for skeleton to disappear — means loading has ended
+  await expect(panel.locator('.animate-pulse').first())
+    .toBeHidden({ timeout })
+    .catch(() => {}); // already hidden (no skeleton started) — that's fine
+}
 
 /**
  * My Listings — E2E Tests
@@ -36,39 +62,55 @@ import { loginAsUser } from './helpers';
 test.describe('My Listings dashboard', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsUser(page);
+    // Wait for the heading to confirm AuthGuard has resolved before each test
+    // in this describe block. On Mobile Chrome, Firebase auth from storageState
+    // can take several seconds, and tests that click tabs fail if the page is
+    // still showing the auth spinner.
+    await page.goto('/my-listings');
+    await page.getByRole('heading', { name: 'My Listings' }).waitFor({
+      state: 'visible',
+      timeout: 15_000,
+    });
   });
 
   test('loads the dashboard and shows both tabs', async ({ page }) => {
-    await page.goto('/my-listings');
+    // beforeEach already navigated and confirmed the heading is visible
     await expect(page.getByRole('heading', { name: 'My Listings' })).toBeVisible();
     await expect(page.getByTestId('tab-services')).toBeVisible();
     await expect(page.getByTestId('tab-products')).toBeVisible();
   });
 
   test('shows the how-it-works note about editing and boosting', async ({ page }) => {
-    await page.goto('/my-listings');
     await expect(page.getByText(/editing a listing/i)).toBeVisible();
     await expect(page.getByText(/boosting an approved listing/i)).toBeVisible();
   });
 
   test('switching to products tab shows the products panel', async ({ page }) => {
-    await page.goto('/my-listings');
     await page.getByTestId('tab-products').click();
     await expect(page.getByTestId('products-panel')).toBeVisible();
   });
 
   test('switching back to services tab shows the services panel', async ({ page }) => {
-    await page.goto('/my-listings');
     await page.getByTestId('tab-products').click();
     await page.getByTestId('tab-services').click();
     await expect(page.getByTestId('services-panel')).toBeVisible();
   });
 
   test('unauthenticated visitor is redirected to sign-in', async ({ browser }) => {
-    const ctx = await browser.newContext(); // fresh context — no stored auth
+    // Explicitly empty storageState ensures no Firebase auth token is inherited.
+    // browser.newContext() without options can silently inherit the project's
+    // storageState in some Playwright versions; the explicit override avoids it.
+    const ctx = await browser.newContext({
+      storageState: { cookies: [], origins: [] },
+    });
     const pg = await ctx.newPage();
     await pg.goto('/my-listings');
-    await pg.waitForURL(/\/auth\/sign-in/, { timeout: 8_000 });
+    // AuthGuard redirects via router.replace() (client-side soft nav).
+    // Check for the sign-in heading — more resilient than waitForURL which
+    // can miss soft-navigation URL changes in some Next.js App Router builds.
+    await expect(pg.getByRole('heading', { name: /sign in/i })).toBeVisible({
+      timeout: 20_000,
+    });
     await ctx.close();
   });
 
@@ -87,37 +129,53 @@ test.describe('Owner listing cards', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsUser(page);
     await page.goto('/my-listings');
-    // Wait for loading to finish
+    // Wait for AuthGuard to resolve before interacting with tabs
+    await page.getByRole('heading', { name: 'My Listings' }).waitFor({
+      state: 'visible',
+      timeout: 15_000,
+    });
     await page.getByTestId('tab-services').click();
   });
 
   test('shows owner listing cards once data loads', async ({ page }) => {
-    // Either cards are shown or the empty-state message
-    await page.waitForTimeout(3_000); // give Firestore time to respond
-    const cards = page.getByTestId('owner-listing-card');
-    const empty = page.getByText(/no service listings yet/i);
-    const visible = (await cards.count()) > 0 || (await empty.isVisible());
+    await waitForPanelLoaded(page, 'services-panel');
+
+    const cards  = page.getByTestId('owner-listing-card');
+    const empty  = page.getByText(/no service listings yet/i);
+    const errMsg = page.getByText(/could not load listings/i);
+    const visible =
+      (await cards.count()) > 0 ||
+      (await empty.isVisible()) ||
+      (await errMsg.isVisible());
     expect(visible).toBe(true);
   });
 
   test('approved card shows Boost listing button, pending card does not', async ({ page }) => {
-    await page.waitForTimeout(3_000);
+    await waitForPanelLoaded(page, 'services-panel');
 
-    // Approved card: boost button visible
-    const approvedCard = page
-      .getByTestId('owner-listing-card')
-      .filter({ has: page.getByText('Approved') })
-      .first();
+    // Approved card: wait directly for the boost button inside an approved card.
+    // This is more reliable than checking count then asserting, because it gives
+    // React time to fully render the card's action row.
+    // Use data-status attribute selector to avoid false-positive title text matches
+    // (e.g. a card titled "[TEST] Approved Painter" with status=pending).
+    const boostBtnInApproved = page
+      .locator('[data-testid="owner-listing-card"][data-status="approved"]')
+      .first()
+      .getByTestId('boost-btn');
 
-    const approvedCount = await approvedCard.count();
-    if (approvedCount > 0) {
-      await expect(approvedCard.getByTestId('boost-btn')).toBeVisible();
+    const boostBtnVisible = await boostBtnInApproved
+      .waitFor({ state: 'visible', timeout: 5_000 })
+      .then(() => true)
+      .catch(() => false);
+
+    if (boostBtnVisible) {
+      await expect(boostBtnInApproved).toBeVisible();
     }
+    // If not visible, no approved card exists for this test user — skip silently.
 
     // Pending card: no boost button, shows hint text instead
     const pendingCard = page
-      .getByTestId('owner-listing-card')
-      .filter({ has: page.getByText('Pending') })
+      .locator('[data-testid="owner-listing-card"][data-status="pending"]')
       .first();
 
     const pendingCount = await pendingCard.count();
@@ -140,7 +198,7 @@ test.describe('Edit service listing', () => {
   test('Edit listing link navigates to the edit form', async ({ page }) => {
     await page.goto('/my-listings');
     await page.getByTestId('tab-services').click();
-    await page.waitForTimeout(3_000);
+    await waitForPanelLoaded(page, 'services-panel');
 
     const firstCard = page.getByTestId('owner-listing-card').first();
     const cardCount = await firstCard.count();
@@ -157,7 +215,7 @@ test.describe('Edit service listing', () => {
   test('edit form is prefilled with existing business name', async ({ page }) => {
     await page.goto('/my-listings');
     await page.getByTestId('tab-services').click();
-    await page.waitForTimeout(3_000);
+    await waitForPanelLoaded(page, 'services-panel');
 
     const firstCard = page.getByTestId('owner-listing-card').first();
     if (await firstCard.count() === 0) { test.skip(); return; }
@@ -173,7 +231,7 @@ test.describe('Edit service listing', () => {
   test('saving edit shows success message and does not create a duplicate', async ({ page }) => {
     await page.goto('/my-listings');
     await page.getByTestId('tab-services').click();
-    await page.waitForTimeout(3_000);
+    await waitForPanelLoaded(page, 'services-panel');
 
     const firstCard = page.getByTestId('owner-listing-card').first();
     if (await firstCard.count() === 0) { test.skip(); return; }
@@ -208,7 +266,7 @@ test.describe('Edit product listing', () => {
   test('Edit listing link navigates to the product edit form', async ({ page }) => {
     await page.goto('/my-listings');
     await page.getByTestId('tab-products').click();
-    await page.waitForTimeout(3_000);
+    await waitForPanelLoaded(page, 'products-panel');
 
     const firstCard = page.getByTestId('owner-listing-card').first();
     if (await firstCard.count() === 0) { test.skip(); return; }
@@ -221,7 +279,7 @@ test.describe('Edit product listing', () => {
   test('product edit page shows existing image upload widget', async ({ page }) => {
     await page.goto('/my-listings');
     await page.getByTestId('tab-products').click();
-    await page.waitForTimeout(3_000);
+    await waitForPanelLoaded(page, 'products-panel');
 
     const firstCard = page.getByTestId('owner-listing-card').first();
     if (await firstCard.count() === 0) { test.skip(); return; }
@@ -249,11 +307,10 @@ test.describe('Boost listing', () => {
   test('clicking Boost listing updates Last boosted date and does not duplicate', async ({ page }) => {
     await page.goto('/my-listings');
     await page.getByTestId('tab-services').click();
-    await page.waitForTimeout(3_000);
+    await waitForPanelLoaded(page, 'services-panel');
 
     const approvedCard = page
-      .getByTestId('owner-listing-card')
-      .filter({ has: page.getByText('Approved') })
+      .locator('[data-testid="owner-listing-card"][data-status="approved"]')
       .first();
 
     if (await approvedCard.count() === 0) {

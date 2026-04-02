@@ -89,6 +89,7 @@ export default function OwnerListingCard({
   return (
     <div
       data-testid="owner-listing-card"
+      data-status={status}
       className="rounded-2xl p-4 flex gap-3"
       style={{
         backgroundColor: '#FEFDFB',
