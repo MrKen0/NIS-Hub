@@ -25,10 +25,10 @@ test.describe('Moderation Flow', () => {
     const title = await card.getByTestId('card-title').innerText();
     expect(title.length).toBeGreaterThan(0);
 
-    // Step 6: Verify the card currently shows PENDING status.
+    // Step 6: Verify the card currently shows Pending status.
     // This confirms we are acting on the right item.
     const chipBefore = card.getByTestId('status-chip');
-    await expect(chipBefore).toHaveText('PENDING');
+    await expect(chipBefore).toHaveText('Pending');
 
     // Step 7: Click the Approve button *inside this specific card*
     // (scoped to the card locator so we don't accidentally click
@@ -36,7 +36,7 @@ test.describe('Moderation Flow', () => {
     await card.getByTestId('approve-btn').click();
 
     // Step 8: After approval the panel reloads. The card should
-    // now show APPROVED status. We re-locate the card by its
+    // now show Approved status. We re-locate the card by its
     // title because the list has re-rendered.
     // First, switch the filter to "All" so the freshly-approved
     // item is still visible (it's no longer "pending").
@@ -48,7 +48,7 @@ test.describe('Moderation Flow', () => {
       has: page.getByTestId('card-title').getByText(title, { exact: true }),
     });
     await expect(approvedCard).toBeVisible();
-    await expect(approvedCard.getByTestId('status-chip')).toHaveText('APPROVED');
+    await expect(approvedCard.getByTestId('status-chip')).toHaveText('Approved');
 
     // Step 9–10: Switch to the Approved filter and confirm
     // the same item appears in the approved-only list.
@@ -59,7 +59,7 @@ test.describe('Moderation Flow', () => {
       has: page.getByTestId('card-title').getByText(title, { exact: true }),
     });
     await expect(itemInApproved).toBeVisible();
-    await expect(itemInApproved.getByTestId('status-chip')).toHaveText('APPROVED');
+    await expect(itemInApproved.getByTestId('status-chip')).toHaveText('Approved');
   });
 
   test('Admin can reject a service listing with a reason', async ({ page }) => {
@@ -76,8 +76,8 @@ test.describe('Moderation Flow', () => {
     const title = await card.getByTestId('card-title').innerText();
     expect(title.length).toBeGreaterThan(0);
 
-    // Verify the card currently shows PENDING.
-    await expect(card.getByTestId('status-chip')).toHaveText('PENDING');
+    // Verify the card currently shows Pending.
+    await expect(card.getByTestId('status-chip')).toHaveText('Pending');
 
     // Step 5: Click the Reject button scoped to this specific card.
     await card.getByTestId('reject-btn').click();
@@ -107,7 +107,7 @@ test.describe('Moderation Flow', () => {
       has: page.getByTestId('card-title').getByText(title, { exact: true }),
     });
     await expect(rejectedCard).toBeVisible();
-    await expect(rejectedCard.getByTestId('status-chip')).toHaveText('REJECTED');
+    await expect(rejectedCard.getByTestId('status-chip')).toHaveText('Rejected');
 
     // Step 11–12: Switch to the Rejected filter and confirm
     // the same item appears in the rejected-only list.
@@ -117,7 +117,7 @@ test.describe('Moderation Flow', () => {
       has: page.getByTestId('card-title').getByText(title, { exact: true }),
     });
     await expect(itemInRejected).toBeVisible();
-    await expect(itemInRejected.getByTestId('status-chip')).toHaveText('REJECTED');
+    await expect(itemInRejected.getByTestId('status-chip')).toHaveText('Rejected');
   });
 
   test('Admin can pause an approved service listing', async ({ page }) => {
@@ -141,8 +141,8 @@ test.describe('Moderation Flow', () => {
       has: page.getByTestId('card-title').getByText(title, { exact: true }),
     });
 
-    // Verify the card currently shows APPROVED.
-    await expect(stableCard.getByTestId('status-chip')).toHaveText('APPROVED');
+    // Verify the card currently shows Approved.
+    await expect(stableCard.getByTestId('status-chip')).toHaveText('Approved');
 
     // Step 6: Click the Pause button scoped to this specific card.
     await stableCard.getByTestId('pause-btn').click();
@@ -162,14 +162,14 @@ test.describe('Moderation Flow', () => {
     // Dialog should close.
     await expect(dialog).toBeHidden();
 
-    // Step 10: Switch to "All" filter and verify card shows PAUSED.
+    // Step 10: Switch to "All" filter and verify card shows Paused.
     await filterByStatus(page, 'all');
 
     const pausedCard = page.getByTestId('content-card').filter({
       has: page.getByTestId('card-title').getByText(title, { exact: true }),
     });
     await expect(pausedCard).toBeVisible();
-    await expect(pausedCard.getByTestId('status-chip')).toHaveText('PAUSED');
+    await expect(pausedCard.getByTestId('status-chip')).toHaveText('Paused');
 
     // Step 11–12: Switch to the Paused filter and confirm
     // the same item appears there.
@@ -179,7 +179,7 @@ test.describe('Moderation Flow', () => {
       has: page.getByTestId('card-title').getByText(title, { exact: true }),
     });
     await expect(itemInPaused).toBeVisible();
-    await expect(itemInPaused.getByTestId('status-chip')).toHaveText('PAUSED');
+    await expect(itemInPaused.getByTestId('status-chip')).toHaveText('Paused');
   });
 
   test('Admin can approve a pending member', async ({ page }) => {
@@ -198,22 +198,22 @@ test.describe('Moderation Flow', () => {
     const name = await card.getByTestId('member-name').innerText();
     expect(name.length).toBeGreaterThan(0);
 
-    // Verify the card currently shows PENDING status.
-    await expect(card.getByTestId('status-chip')).toHaveText('PENDING');
+    // Verify the card currently shows Pending status.
+    await expect(card.getByTestId('status-chip')).toHaveText('Pending');
 
     // Step 6: Click the Approve button scoped to this member card.
     // Member approve is instant (no confirmation dialog).
     await card.getByTestId('approve-btn').click();
 
     // Step 7: Switch to "All" filter and verify the member
-    // now shows APPROVED.
+    // now shows Approved.
     await filterByStatus(page, 'all');
 
     const approvedMember = page.getByTestId('member-card').filter({
       has: page.getByTestId('member-name').getByText(name, { exact: true }),
     });
     await expect(approvedMember).toBeVisible();
-    await expect(approvedMember.getByTestId('status-chip')).toHaveText('APPROVED');
+    await expect(approvedMember.getByTestId('status-chip')).toHaveText('Approved');
 
     // Step 8–9: Switch to Approved filter and confirm the
     // same member appears there.
@@ -223,7 +223,7 @@ test.describe('Moderation Flow', () => {
       has: page.getByTestId('member-name').getByText(name, { exact: true }),
     });
     await expect(memberInApproved).toBeVisible();
-    await expect(memberInApproved.getByTestId('status-chip')).toHaveText('APPROVED');
+    await expect(memberInApproved.getByTestId('status-chip')).toHaveText('Approved');
   });
 
   test('Admin can archive an approved service listing', async ({ page }) => {
@@ -241,8 +241,8 @@ test.describe('Moderation Flow', () => {
     const title = await card.getByTestId('card-title').innerText();
     expect(title.length).toBeGreaterThan(0);
 
-    // Step 6: Verify the card currently shows APPROVED.
-    await expect(card.getByTestId('status-chip')).toHaveText('APPROVED');
+    // Step 6: Verify the card currently shows Approved.
+    await expect(card.getByTestId('status-chip')).toHaveText('Approved');
 
     // Step 7: Click the Archive button scoped to this specific card.
     await card.getByTestId('archive-btn').click();
@@ -262,14 +262,14 @@ test.describe('Moderation Flow', () => {
     // Dialog should close.
     await expect(dialog).toBeHidden();
 
-    // Step 11: Switch to "All" filter and verify card shows ARCHIVED.
+    // Step 11: Switch to "All" filter and verify card shows Archived.
     await filterByStatus(page, 'all');
 
     const archivedCard = page.getByTestId('content-card').filter({
       has: page.getByTestId('card-title').getByText(title, { exact: true }),
     });
     await expect(archivedCard).toBeVisible();
-    await expect(archivedCard.getByTestId('status-chip')).toHaveText('ARCHIVED');
+    await expect(archivedCard.getByTestId('status-chip')).toHaveText('Archived');
 
     // Step 12: Verify that no action buttons are shown on the
     // archived card (archived is a terminal state).
@@ -286,6 +286,6 @@ test.describe('Moderation Flow', () => {
       has: page.getByTestId('card-title').getByText(title, { exact: true }),
     });
     await expect(itemInArchived).toBeVisible();
-    await expect(itemInArchived.getByTestId('status-chip')).toHaveText('ARCHIVED');
+    await expect(itemInArchived.getByTestId('status-chip')).toHaveText('Archived');
   });
 });

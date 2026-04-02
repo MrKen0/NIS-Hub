@@ -23,7 +23,7 @@ export default function NoticeCard({ notice, onModerate, isAdmin }: NoticeCardPr
       case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
       case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'low': return 'bg-slate-100 text-slate-700 border-slate-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };

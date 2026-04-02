@@ -54,7 +54,7 @@ export default function ProductDetailPage() {
               title="Product not found"
               message="This listing may have been removed or is not yet approved."
               action={
-                <button onClick={() => router.push('/products')} className="text-sm font-medium text-blue-600 underline">
+                <button onClick={() => router.push('/products')} className="text-sm font-medium underline" style={{ color: 'var(--color-primary)' }}>
                   Back to products
                 </button>
               }
@@ -88,7 +88,7 @@ export default function ProductDetailPage() {
                 {/* Title + price */}
                 <div>
                   <h1 className="text-2xl font-bold text-slate-900 mb-1">{product.title}</h1>
-                  <p className="text-lg font-bold text-blue-700">
+                  <p className="text-lg font-bold" style={{ color: 'var(--color-primary-dark)' }}>
                     {product.priceOnRequest ? 'Price on request' : product.priceText}
                   </p>
                 </div>

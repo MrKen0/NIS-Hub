@@ -36,18 +36,24 @@ export default function AdminTabBar({ activeTab, onTabChange, pendingCounts }: P
               onClick={() => onTabChange(tab.id)}
               data-testid={`tab-${tab.id}`}
               className={`relative flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-semibold transition min-h-[44px] ${
-                isActive
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                isActive ? 'shadow-sm' : 'bg-white hover:opacity-90'
               }`}
+              style={
+                isActive
+                  ? { background: 'var(--color-primary)', color: '#fff' }
+                  : { border: '1px solid var(--color-border)', color: 'var(--color-muted)' }
+              }
               aria-current={isActive ? 'page' : undefined}
             >
               {tab.label}
               {count > 0 && (
                 <span
-                  className={`inline-flex items-center justify-center min-w-[20px] h-5 rounded-full px-1.5 text-xs font-bold ${
-                    isActive ? 'bg-white text-blue-600' : 'bg-red-500 text-white'
-                  }`}
+                  className="inline-flex items-center justify-center min-w-[20px] h-5 rounded-full px-1.5 text-xs font-bold"
+                  style={
+                    isActive
+                      ? { background: '#fff', color: 'var(--color-primary)' }
+                      : { background: '#EF4444', color: '#fff' }
+                  }
                 >
                   {count}
                 </span>

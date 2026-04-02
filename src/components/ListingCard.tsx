@@ -20,7 +20,10 @@ export default function ListingCard({ listing, isAdmin, onModerate }: Props) {
   const isExpired = today > expiresAt;
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <article
+      className="rounded-xl bg-white p-4 sm:p-5"
+      style={{ border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-card)' }}
+    >
       {listing.isProduct && (
         <img
           alt={listing.title}
@@ -31,13 +34,13 @@ export default function ListingCard({ listing, isAdmin, onModerate }: Props) {
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-lg font-semibold text-slate-900">{listing.title}</h3>
+        <h3 className="text-lg font-semibold" style={{ color: 'var(--color-text)' }}>{listing.title}</h3>
         <StatusChip status={listing.status} />
       </div>
 
-      <p className="py-2 text-sm text-slate-600">{listing.description}</p>
+      <p className="py-2 text-sm" style={{ color: 'var(--color-muted)' }}>{listing.description}</p>
 
-      <ul className="space-y-1 text-sm leading-relaxed text-slate-600">
+      <ul className="space-y-1 text-sm leading-relaxed" style={{ color: 'var(--color-muted)' }}>
         <li><strong>Created:</strong> {formatDate(listing.createdAt)}</li>
         <li>
           <strong>Expires:</strong> {formatDate(listing.expiresAt)}{' '}
@@ -45,7 +48,7 @@ export default function ListingCard({ listing, isAdmin, onModerate }: Props) {
         </li>
       </ul>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs" style={{ color: 'var(--color-muted)' }}>
         <span>Author: {listing.authorId}</span>
         <span>Type: {listing.isProduct ? 'Product' : 'Service'}</span>
       </div>
@@ -55,7 +58,8 @@ export default function ListingCard({ listing, isAdmin, onModerate }: Props) {
           href={whatsappLink(listing.whatsapp, `Hello, I'm interested in ${listing.title}`)}
           target="_blank"
           rel="noreferrer"
-          className="rounded-lg bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100"
+          className="rounded-lg px-3 py-1.5 text-sm font-medium hover:opacity-80 transition-opacity"
+          style={{ background: 'var(--color-primary-surface)', color: 'var(--color-primary)' }}
         >
           WhatsApp
         </a>
@@ -64,7 +68,8 @@ export default function ListingCard({ listing, isAdmin, onModerate }: Props) {
           <>
             <button
               onClick={() => onModerate(listing.id, 'approved')}
-              className="rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-100"
+              className="rounded-lg px-3 py-1.5 text-sm font-medium hover:opacity-80 transition-opacity"
+              style={{ background: 'var(--color-primary-surface)', color: 'var(--color-primary)' }}
             >
               Approve
             </button>

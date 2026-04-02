@@ -55,7 +55,7 @@ export default function ServiceDetailPage() {
               title="Service not found"
               message="This listing may have been removed or is not yet approved."
               action={
-                <button onClick={() => router.push('/services')} className="text-sm font-medium text-blue-600 underline">
+                <button onClick={() => router.push('/services')} className="text-sm font-medium underline" style={{ color: 'var(--color-primary)' }}>
                   Back to services
                 </button>
               }
@@ -65,9 +65,9 @@ export default function ServiceDetailPage() {
           {service && (
             <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
               {/* Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
+              <div className="text-white p-6" style={{ background: 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)' }}>
                 <h1 className="text-2xl font-bold mb-1">{service.businessName}</h1>
-                <p className="text-blue-100 text-sm">
+                <p className="text-sm" style={{ color: '#A7F3D0' }}>
                   {service.category}{service.subcategory ? ` / ${service.subcategory}` : ''}
                 </p>
               </div>
@@ -85,7 +85,7 @@ export default function ServiceDetailPage() {
                     <h3 className="text-sm font-semibold text-slate-500 mb-1">Service Areas</h3>
                     <div className="flex flex-wrap gap-1">
                       {service.serviceAreas.map((area) => (
-                        <span key={area} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-700">
+                        <span key={area} className="rounded-full px-2.5 py-1 text-xs" style={{ background: 'var(--color-primary-surface)', color: 'var(--color-primary)' }}>
                           {area}
                         </span>
                       ))}

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,11 +10,13 @@
 ───────────────────────────────────────────────────────── */
 :root {
   /* Brand identity */
-  --color-primary:         #008753;
-  --color-primary-dark:    #0B3D2E;
-  --color-primary-light:   #00A86B;
-  --color-primary-surface: #E8F5EE;
-  --color-gold:            #CFAF5A;
+  --color-primary:              #008753;
+  --color-primary-dark:         #0B3D2E;
+  --color-primary-light:        #00A86B;
+  --color-primary-surface:      #E8F5EE;
+  --color-primary-surface-alt:  #D1EAD8;
+  --color-gold:                 #CFAF5A;
+  --color-sand:                 #EAD9B6;
 
   /* Backgrounds */
   --color-bg:      #F5F1E8;
@@ -85,6 +89,14 @@ a:hover {
   outline-offset: 3px;
 }
 
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-color: var(--color-primary) !important;
+}
+
 button,
 input,
 select,
@@ -92,16 +104,31 @@ textarea {
   font: inherit;
 }
 
-/* Balance headings (Podia pattern) */
+/* Headings — Poppins for visual hierarchy */
 h1, h2, h3 {
+  font-family: 'Poppins', Inter, system-ui, sans-serif;
   text-wrap: balance;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
 }
 
 @supports (padding: max(0px)) {
   body {
     padding-bottom: env(safe-area-inset-bottom);
   }
+}
+
+/* ─────────────────────────────────────────────────────────
+   CARD HOVER LIFT
+   Apply .card-lift to any interactive card for consistent
+   hover elevation treatment using design tokens.
+───────────────────────────────────────────────────────── */
+.card-lift {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.card-lift:hover {
+  box-shadow: var(--shadow-raise);
+  border-color: rgba(0, 135, 83, 0.3);
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -128,6 +155,10 @@ h1, h2, h3 {
   [data-animate] {
     opacity: 1;
     transform: none;
+    transition: none;
+  }
+
+  .card-lift {
     transition: none;
   }
 }

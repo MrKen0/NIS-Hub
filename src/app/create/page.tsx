@@ -72,8 +72,8 @@ export default function CreateChooserPage() {
     <AuthGuard>
       <AppShell>
         <div className="max-w-lg mx-auto">
-          <h1 className="text-2xl font-bold text-slate-900 mb-1">What would you like to post?</h1>
-          <p className="text-sm text-slate-600 mb-6">Choose a type to get started.</p>
+          <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--color-text)' }}>What would you like to post?</h1>
+          <p className="text-sm mb-6" style={{ color: 'var(--color-muted)' }}>Choose a type to get started.</p>
 
           <div className="space-y-3">
             {postTypes
@@ -82,12 +82,13 @@ export default function CreateChooserPage() {
                 <Link
                   key={pt.href}
                   href={pt.href}
-                  className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-300 hover:bg-blue-50/50 active:bg-blue-50"
+                  className="flex items-center gap-4 rounded-xl bg-white p-4 card-lift"
+                  style={{ border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-card)' }}
                 >
-                  <div className="flex-shrink-0 text-blue-600">{pt.icon}</div>
+                  <div className="flex-shrink-0" style={{ color: 'var(--color-primary)' }}>{pt.icon}</div>
                   <div>
-                    <div className="font-semibold text-slate-900">{pt.title}</div>
-                    <div className="text-sm text-slate-600">{pt.description}</div>
+                    <div className="font-semibold" style={{ color: 'var(--color-text)' }}>{pt.title}</div>
+                    <div className="text-sm" style={{ color: 'var(--color-muted)' }}>{pt.description}</div>
                   </div>
                   <svg className="ml-auto w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

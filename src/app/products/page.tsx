@@ -14,7 +14,6 @@ export default function ProductsBrowsePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Filter state
   const [category, setCategory] = useState<ProductCategory | ''>('');
   const [keyword, setKeyword] = useState('');
 
@@ -34,9 +33,7 @@ export default function ProductsBrowsePage() {
 
   const filtered = useMemo(() => {
     if (!hasFilters) return products;
-
     const kw = keyword.toLowerCase().trim();
-
     return products.filter((p) => {
       if (category && p.category !== category) return false;
       if (kw) {
@@ -51,14 +48,15 @@ export default function ProductsBrowsePage() {
     <AuthGuard>
       <AppShell>
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-5">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Products</h1>
-              <p className="text-sm text-slate-600">Food, goods, and crafts from the community</p>
+              <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text)' }}>Products</h1>
+              <p className="text-sm" style={{ color: 'var(--color-muted)' }}>Food, goods, and crafts from the community</p>
             </div>
             <Link
               href="/create/product"
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors min-h-[44px] flex items-center"
+              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-white min-h-[44px] flex items-center transition-opacity hover:opacity-90"
+              style={{ background: 'var(--color-primary)' }}
             >
               + List a Product
             </Link>
@@ -66,11 +64,12 @@ export default function ProductsBrowsePage() {
 
           {/* Filters */}
           {!loading && !error && products.length > 0 && (
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-5">
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as ProductCategory | '')}
-                className="min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 min-h-[44px]"
+                className="min-w-0 rounded-xl bg-white px-3 py-2 text-sm min-h-[44px]"
+                style={{ border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
                 aria-label="Filter by category"
               >
                 <option value="">All categories</option>
@@ -83,13 +82,15 @@ export default function ProductsBrowsePage() {
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 placeholder="Search products..."
-                className="flex-1 min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 min-h-[44px] outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="flex-1 min-w-0 rounded-xl bg-white px-3 py-2 text-sm min-h-[44px] outline-none"
+                style={{ border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
                 aria-label="Search products"
               />
               {hasFilters && (
                 <button
                   onClick={clearFilters}
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition min-h-[44px]"
+                  className="rounded-xl px-3 py-2 text-sm font-medium min-h-[44px] hover:opacity-80 transition-opacity"
+                  style={{ border: '1px solid var(--color-border)', color: 'var(--color-muted)' }}
                 >
                   Clear
                 </button>
@@ -100,8 +101,12 @@ export default function ProductsBrowsePage() {
           {loading && (
             <div className="grid grid-cols-2 gap-3">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="rounded-xl border border-slate-200 bg-white p-3 animate-pulse">
-                  <div className="h-28 w-full bg-slate-200 rounded-lg mb-2" />
+                <div
+                  key={i}
+                  className="rounded-xl bg-white p-3 animate-pulse"
+                  style={{ border: '1px solid var(--color-border)' }}
+                >
+                  <div className="h-28 w-full rounded-xl mb-2" style={{ background: 'var(--color-bg)' }} />
                   <div className="h-4 w-3/4 bg-slate-200 rounded mb-1" />
                   <div className="h-3 w-1/2 bg-slate-100 rounded" />
                 </div>
@@ -117,21 +122,20 @@ export default function ProductsBrowsePage() {
               title="No products yet"
               message="Be the first to list a product for the community."
               action={
-                <Link href="/create/product" className="text-sm font-medium text-blue-600 underline">
+                <Link href="/create/product" className="text-sm font-medium underline" style={{ color: 'var(--color-primary)' }}>
                   List a product
                 </Link>
               }
             />
           )}
 
-          {/* Filtered empty state */}
           {!loading && !error && products.length > 0 && filtered.length === 0 && (
             <StateMessage
               type="empty"
               title="No products match your filters"
               message="Try broadening your search or clearing the filters."
               action={
-                <button onClick={clearFilters} className="text-sm font-medium text-blue-600 underline">
+                <button onClick={clearFilters} className="text-sm font-medium underline" style={{ color: 'var(--color-primary)' }}>
                   Clear filters
                 </button>
               }
@@ -145,10 +149,13 @@ export default function ProductsBrowsePage() {
                   key={p.id}
                   href={`/products/${p.id}`}
                   data-testid="product-card"
-                  className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
+                  className="rounded-xl bg-white overflow-hidden card-lift"
+                  style={{ border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-card)' }}
                 >
-                  {/* Image or placeholder */}
-                  <div className="h-28 bg-slate-100 flex items-center justify-center">
+                  <div
+                    className="h-28 flex items-center justify-center"
+                    style={{ background: 'var(--color-bg)' }}
+                  >
                     {p.imageUrls.length > 0 ? (
                       <img
                         src={p.imageUrls[0]}
@@ -166,13 +173,13 @@ export default function ProductsBrowsePage() {
                     )}
                   </div>
                   <div className="p-3">
-                    <h3 className="font-semibold text-slate-900 text-sm line-clamp-1">{p.title}</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">{p.category}</p>
-                    <p className="text-sm font-bold text-blue-700 mt-1">
+                    <h3 className="font-semibold text-sm line-clamp-1" style={{ color: 'var(--color-text)' }}>{p.title}</h3>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>{p.category}</p>
+                    <p className="text-sm font-bold mt-1" style={{ color: 'var(--color-primary-dark)' }}>
                       {p.priceOnRequest ? 'Price on request' : p.priceText}
                     </p>
                     {p.deliveryAvailable && (
-                      <span className="text-xs text-green-600 font-medium">Delivery available</span>
+                      <span className="text-xs font-medium" style={{ color: 'var(--color-primary)' }}>Delivery available</span>
                     )}
                   </div>
                 </Link>

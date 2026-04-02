@@ -71,7 +71,7 @@ export default function EventDetailPage() {
               title="Event not found"
               message="This event may have been removed or is not yet approved."
               action={
-                <button onClick={() => router.push('/events')} className="text-sm font-medium text-blue-600 underline">
+                <button onClick={() => router.push('/events')} className="text-sm font-medium underline" style={{ color: 'var(--color-primary)' }}>
                   Back to events
                 </button>
               }
@@ -81,9 +81,9 @@ export default function EventDetailPage() {
           {event && (
             <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
               {/* Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
+              <div className="text-white p-6" style={{ background: 'linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)' }}>
                 <h1 className="text-2xl font-bold mb-1">{event.title}</h1>
-                <p className="text-blue-100 text-sm">
+                <p className="text-sm" style={{ color: '#A7F3D0' }}>
                   {formatDateLong(event.date)} at {formatTime(event.time)}
                 </p>
               </div>
