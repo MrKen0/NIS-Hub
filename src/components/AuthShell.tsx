@@ -42,19 +42,29 @@ export default function AuthShell({ children }: { children: ReactNode }) {
         />
 
         {/* ── Always visible: logo badge ─────────────── */}
-        <div className="mb-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo.png"
-            alt="Naijas in Stevenage"
-            width={80}
-            height={80}
-            className="w-14 h-14 lg:w-20 lg:h-20 rounded-full"
+        <div className="mb-5">
+          {/*
+            Wrap in a white circular container so the full badge is visible
+            regardless of PNG background. objectFit: contain shows the
+            complete circular logo without cropping the outer text.
+          */}
+          <div
+            className="w-20 h-20 lg:w-32 lg:h-32 rounded-full overflow-hidden flex-shrink-0"
             style={{
-              objectFit: 'cover',
-              boxShadow: '0 0 0 3px rgba(255,255,255,0.25), 0 4px 16px rgba(0,0,0,0.2)',
+              backgroundColor: '#ffffff',
+              boxShadow: '0 0 0 4px rgba(255,255,255,0.3), 0 8px 28px rgba(0,0,0,0.3)',
             }}
-          />
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="Naijas in Stevenage"
+              width={128}
+              height={128}
+              className="w-full h-full"
+              style={{ objectFit: 'contain', display: 'block' }}
+            />
+          </div>
         </div>
 
         {/* ── Always visible: eyebrow + H1 + tagline ─── */}
