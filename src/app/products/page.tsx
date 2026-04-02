@@ -104,6 +104,8 @@ function FeaturedProductCard({ product }: { product: ProductListing }) {
       style={{
         backgroundColor: 'var(--color-surface)',
         border: '1px solid var(--color-border)',
+        borderTopWidth: '2px',
+        borderTopColor: 'rgba(207,175,90,0.5)',
         boxShadow: 'var(--shadow-card)',
       }}
     >
@@ -215,6 +217,9 @@ export default function ProductsBrowsePage() {
                 </h1>
                 <p className="mt-1 text-sm" style={{ color: 'var(--color-primary-dark)', opacity: 0.8 }}>
                   Food, goods, and crafts made and sold by community members.
+                </p>
+                <p className="mt-0.5 text-xs" style={{ color: 'var(--color-primary-dark)', opacity: 0.6 }}>
+                  Sell once. Stay visible. No weekly reposting needed.
                 </p>
               </div>
               {/* Gold accent badge */}
@@ -379,7 +384,8 @@ export default function ProductsBrowsePage() {
                     key={p.id}
                     href={`/products/${p.id}`}
                     data-testid="product-card"
-                    className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
+                    className="rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:border-blue-300 transition-all card-lift"
+                    style={{ backgroundColor: '#FEFDFB' }}
                   >
                     {/* Image or placeholder */}
                     <div className="h-28 bg-slate-100 flex items-center justify-center">

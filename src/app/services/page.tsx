@@ -44,6 +44,8 @@ function FeaturedServiceCard({ service }: { service: ServiceListing }) {
       style={{
         backgroundColor: 'var(--color-surface)',
         border: '1px solid var(--color-border)',
+        borderTopWidth: '2px',
+        borderTopColor: 'var(--color-primary-surface)',
         borderLeftWidth: '3px',
         borderLeftColor: 'var(--color-primary)',
         boxShadow: 'var(--shadow-card)',
@@ -156,6 +158,9 @@ export default function ServicesBrowsePage() {
             </h1>
             <p className="mt-1 text-sm" style={{ color: 'var(--color-primary-dark)', opacity: 0.8 }}>
               Find trusted local services shared by members of the community.
+            </p>
+            <p className="mt-0.5 text-xs" style={{ color: 'var(--color-primary-dark)', opacity: 0.6 }}>
+              No more weekly reposting. Stay visible to the community.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               <Link
@@ -323,7 +328,8 @@ export default function ServicesBrowsePage() {
                     key={s.id}
                     href={`/services/${s.id}`}
                     data-testid="service-card"
-                    className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
+                    className="block rounded-xl border border-slate-200 p-4 shadow-sm hover:border-blue-300 transition-all card-lift"
+                    style={{ backgroundColor: '#FEFDFB' }}
                   >
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <h3 className="font-semibold text-slate-900 line-clamp-1">{s.businessName}</h3>

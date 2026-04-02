@@ -196,16 +196,21 @@ function HomeContent() {
           aria-hidden="true"
         />
 
+        {/* Personalised greeting — secondary eyebrow, not the headline */}
         <p
           className="text-xs font-bold uppercase tracking-widest mb-3"
           style={{ color: '#6EE7B7' }}
         >
-          Welcome back
+          Welcome back, {profile.displayName}
         </p>
+        {/* Mission headline — community identity */}
         <h1 className="text-2xl sm:text-3xl font-bold leading-tight">
-          {profile.displayName}
+          Connecting Naijas in Stevenage
         </h1>
-        <p className="mt-1 text-sm" style={{ color: '#A7F3D0' }}>
+        <p className="mt-1.5 text-sm leading-relaxed" style={{ color: '#A7F3D0' }}>
+          Find services, share opportunities, and build real community.
+        </p>
+        <p className="mt-0.5 text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>
           {ROLE_LABELS[profile.role] ?? profile.role}
           {profile.area ? ` · ${profile.area}` : ''}
         </p>
@@ -295,9 +300,10 @@ function HomeContent() {
               key={card.href}
               href={card.href}
               data-animate
-              className="group flex items-start gap-4 rounded-2xl bg-white p-4 sm:p-5 transition-all"
+              className="group flex items-start gap-4 rounded-2xl p-4 sm:p-5 transition-all"
               style={{
                 '--anim-delay': `${140 + i * 40}ms`,
+                backgroundColor: '#FEFDFB',
                 border: '1px solid var(--color-border)',
                 boxShadow: 'var(--shadow-card)',
               } as React.CSSProperties}
@@ -344,13 +350,58 @@ function HomeContent() {
         </div>
       </div>
 
+      {/* ── Why NIS Hub / WhatsApp bridge ────────────── */}
+      <section
+        data-animate
+        className="rounded-2xl p-5"
+        style={{
+          '--anim-delay': '360ms',
+          backgroundColor: '#FEFDFB',
+          border: '1px solid var(--color-border)',
+          borderLeftWidth: '3px',
+          borderLeftColor: 'var(--color-primary)',
+          boxShadow: 'var(--shadow-card)',
+        } as React.CSSProperties}
+      >
+        <p
+          className="text-xs font-bold uppercase tracking-widest mb-2"
+          style={{ color: 'var(--color-primary)' }}
+        >
+          Why we built this
+        </p>
+        <h2 className="text-base font-bold mb-2" style={{ color: 'var(--color-text)' }}>
+          More than a WhatsApp group
+        </h2>
+        <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--color-muted)' }}>
+          NIS Hub gives every service, product, event, and notice its own permanent home —
+          visible to the whole community without the need to repost every week.
+        </p>
+        <ul className="space-y-2">
+          {[
+            'Listings stay visible — no more weekly reposting',
+            'Easier to find — browse by category, area, or keyword',
+            'Organised — services, products, events, and notices each in their own place',
+          ].map((point) => (
+            <li key={point} className="flex items-start gap-2">
+              <span
+                className="flex-shrink-0 mt-0.5 w-4 h-4 rounded-full flex items-center justify-center text-white text-xs"
+                style={{ backgroundColor: 'var(--color-primary)' }}
+              >
+                ✓
+              </span>
+              <span className="text-sm" style={{ color: 'var(--color-text)' }}>{point}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* ── How it works ──────────────────────────────── */}
       <section
         data-animate
         style={
           {
-            '--anim-delay': '380ms',
-            background: '#fff',
+            '--anim-delay': '400ms',
+            background: '#FEFDFB',
             border: '1px solid var(--color-border)',
             borderRadius: '16px',
             padding: '20px',
@@ -367,7 +418,7 @@ function HomeContent() {
           {HOW_IT_WORKS.map((item) => (
             <div key={item.step} className="flex gap-3 items-start">
               <span
-                className="flex-shrink-0 w-6 h-6 rounded-full text-white text-xs font-bold flex items-center justify-center"
+                className="flex-shrink-0 w-8 h-8 rounded-full text-white text-xs font-bold flex items-center justify-center"
                 style={{ background: 'var(--color-primary)' }}
               >
                 {item.step}
@@ -391,11 +442,59 @@ function HomeContent() {
         </div>
       </section>
 
+      {/* ── Community Guidelines link card ────────────── */}
+      <div
+        data-animate
+        style={{ '--anim-delay': '440ms' } as React.CSSProperties}
+      >
+        <Link
+          href="/rules"
+          className="flex items-center justify-between gap-3 rounded-xl p-4 transition-all hover:shadow-md"
+          style={{
+            backgroundColor: '#FEFDFB',
+            border: '1px solid rgba(207,175,90,0.45)',
+            boxShadow: 'var(--shadow-card)',
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-base"
+              style={{ backgroundColor: 'rgba(207,175,90,0.12)' }}
+            >
+              📜
+            </div>
+            <div>
+              <p className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>
+                Community Guidelines
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>
+                Read the rules that keep this space safe and useful.
+              </p>
+            </div>
+          </div>
+          <span className="text-sm font-medium flex-shrink-0" style={{ color: '#7a5c1e' }}>
+            View Rules →
+          </span>
+        </Link>
+      </div>
+
+      {/* ── Trust strip ───────────────────────────────── */}
+      <p
+        data-animate
+        className="text-center text-xs leading-relaxed px-4"
+        style={{
+          '--anim-delay': '460ms',
+          color: 'var(--color-muted)',
+        } as React.CSSProperties}
+      >
+        🛡️ Moderated by community admins to keep this space safe and useful.
+      </p>
+
       {/* ── Admin ─────────────────────────────────────── */}
       {profile.role === "admin" && (
         <div
           data-animate
-          style={{ '--anim-delay': '420ms' } as React.CSSProperties}
+          style={{ '--anim-delay': '480ms' } as React.CSSProperties}
         >
           <p
             className="text-xs font-bold uppercase tracking-widest mb-3"
