@@ -13,6 +13,7 @@ import { auth } from "@/lib/firebase/client";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import AuthShell from "@/components/AuthShell";
 
 export default function SignInPage() {
   const { user, profile, loading } = useAuth();
@@ -75,74 +76,84 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-[var(--bg)]">
-      <div className="w-full max-w-sm">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-[var(--text)]">Welcome back</h1>
-          <p className="text-[var(--muted)] mt-1">Sign in to NIS Hub</p>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div
-              role="alert"
-              className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm"
-            >
-              {error}
-            </div>
-          )}
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-[var(--text)] mb-1">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-[var(--text)] mb-1">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Your password"
-              className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-3 rounded-xl bg-[var(--brand-primary)] text-[var(--brand-on-primary)] font-semibold text-base min-h-[48px] hover:opacity-90 disabled:opacity-50 transition-opacity"
-          >
-            {submitting ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
-
-        {/* Link to sign up */}
-        <p className="text-center text-sm text-[var(--muted)] mt-6">
-          New to the community?{" "}
-          <Link href="/auth/sign-up" className="text-[var(--brand-primary)] font-medium">
-            Create an account
-          </Link>
+    <AuthShell>
+      {/* Local form heading — task context */}
+      <div className="mb-6">
+        <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Sign in</h2>
+        <p className="mt-1 text-sm" style={{ color: 'var(--color-muted)' }}>
+          Welcome back to the community.
         </p>
       </div>
-    </div>
+
+      {/* Form — auth logic unchanged */}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div
+            role="alert"
+            className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm"
+          >
+            {error}
+          </div>
+        )}
+
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-[var(--text)] mb-1">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-[var(--text)] mb-1">
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            required
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Your password"
+            className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent"
+          />
+          {/* Forgot password link */}
+          <div className="flex justify-end mt-1.5">
+            <Link
+              href="/auth/forgot-password"
+              className="text-xs font-medium hover:underline"
+              style={{ color: 'var(--color-primary)' }}
+            >
+              Forgot password?
+            </Link>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={submitting}
+          className="w-full py-3 rounded-xl bg-[var(--brand-primary)] text-[var(--brand-on-primary)] font-semibold text-base min-h-[48px] hover:opacity-90 disabled:opacity-50 transition-opacity"
+        >
+          {submitting ? "Signing in..." : "Sign in"}
+        </button>
+      </form>
+
+      {/* Link to sign up */}
+      <p className="text-center text-sm text-[var(--muted)] mt-6">
+        New to the community?{" "}
+        <Link href="/auth/sign-up" className="text-[var(--brand-primary)] font-medium">
+          Create an account
+        </Link>
+      </p>
+    </AuthShell>
   );
 }
