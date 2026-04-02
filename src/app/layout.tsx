@@ -1,11 +1,14 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Providers from '@/components/Providers';
+
+export const viewport: Viewport = {
+  themeColor: '#0f172a',
+};
 
 export const metadata: Metadata = {
   title: 'NIS Hub',
   description: 'Naijas in Stevenage community hub',
-  themeColor: '#0f172a',
   manifest: '/manifest.json',
   icons: {
     icon: '/icons/icon-192.svg',
