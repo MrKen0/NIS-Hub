@@ -41,6 +41,22 @@ export default function AuthShell({ children }: { children: ReactNode }) {
           aria-hidden="true"
         />
 
+        {/* ── Always visible: logo badge ─────────────── */}
+        <div className="mb-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="Naijas in Stevenage"
+            width={80}
+            height={80}
+            className="w-14 h-14 lg:w-20 lg:h-20 rounded-full"
+            style={{
+              objectFit: 'cover',
+              boxShadow: '0 0 0 3px rgba(255,255,255,0.25), 0 4px 16px rgba(0,0,0,0.2)',
+            }}
+          />
+        </div>
+
         {/* ── Always visible: eyebrow + H1 + tagline ─── */}
         <p
           className="text-xs font-bold uppercase tracking-widest mb-2"

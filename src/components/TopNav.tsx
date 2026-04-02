@@ -38,12 +38,15 @@ export default function TopNav() {
         <Link href="/" className="flex-shrink-0 group" style={{ textDecoration: 'none' }}>
           <div className="flex items-center gap-2.5">
             {/* Logo mark */}
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ background: 'var(--color-primary)' }}
-            >
-              <span className="text-white font-bold text-sm leading-none">N</span>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="NIS Hub"
+              width={36}
+              height={36}
+              className="w-9 h-9 flex-shrink-0 rounded-full"
+              style={{ objectFit: 'cover' }}
+            />
             <div>
               <p
                 className="text-xs font-bold uppercase tracking-widest leading-none"
