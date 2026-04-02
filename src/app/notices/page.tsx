@@ -107,6 +107,8 @@ function LatestNoticeCard({ notice }: { notice: CommunityNotice }) {
       style={{
         backgroundColor: notice.category === 'Alert' ? 'rgba(254,242,242,0.6)' : 'var(--color-surface)',
         border: '1px solid var(--color-border)',
+        borderTopWidth: '2px',
+        borderTopColor: notice.category === 'Alert' ? 'rgba(239,68,68,0.4)' : 'var(--color-primary-surface)',
         borderLeftWidth: '3px',
         borderLeftColor: notice.category === 'Alert' ? 'rgba(239,68,68,0.7)' : 'var(--color-primary)',
         boxShadow: 'var(--shadow-card)',
@@ -141,8 +143,8 @@ function NoticeListCard({ notice }: { notice: CommunityNotice }) {
     <Link
       href={`/notices/${notice.id}`}
       data-testid="notice-card"
-      className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
-      style={alertStyle(notice.category)}
+      className="block rounded-xl border border-slate-200 p-4 shadow-sm hover:border-blue-300 transition-all card-lift"
+      style={{ backgroundColor: '#FEFDFB', ...alertStyle(notice.category) }}
     >
       <div className="flex items-start gap-3">
         <span className="text-xl flex-shrink-0 mt-0.5">{categoryIcon(notice.category)}</span>
@@ -249,6 +251,9 @@ export default function NoticesBrowsePage() {
             </h1>
             <p className="mt-1 text-sm" style={{ color: 'var(--color-primary-dark)', opacity: 0.8 }}>
               Community announcements, alerts, and opportunities.
+            </p>
+            <p className="mt-0.5 text-xs" style={{ color: 'var(--color-primary-dark)', opacity: 0.6 }}>
+              Important updates for the community, in one place.
             </p>
             {canPostNotice && (
               <div className="mt-4">

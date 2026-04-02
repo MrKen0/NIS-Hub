@@ -127,6 +127,8 @@ function FeaturedEventCard({ event }: { event: CommunityEvent }) {
       style={{
         backgroundColor: 'var(--color-surface)',
         border: '1px solid var(--color-border)',
+        borderTopWidth: '2px',
+        borderTopColor: 'var(--color-primary-surface)',
         borderLeftWidth: '3px',
         borderLeftColor: 'var(--color-primary)',
         boxShadow: 'var(--shadow-card)',
@@ -253,6 +255,9 @@ export default function EventsBrowsePage() {
             <p className="mt-1 text-sm" style={{ color: 'var(--color-primary-dark)', opacity: 0.8 }}>
               Community gatherings, workshops, and celebrations near you.
             </p>
+            <p className="mt-0.5 text-xs" style={{ color: 'var(--color-primary-dark)', opacity: 0.6 }}>
+              Bring people together. Build real connections.
+            </p>
             <div className="mt-4">
               <Link
                 href="/create/event"
@@ -361,7 +366,8 @@ export default function EventsBrowsePage() {
                       key={ev.id}
                       href={`/events/${ev.id}`}
                       data-testid="event-card"
-                      className={`flex gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:border-blue-300 hover:shadow-md transition-all ${isPast ? 'opacity-60' : ''}`}
+                      className={`flex gap-3 rounded-xl border border-slate-200 p-4 shadow-sm hover:border-blue-300 transition-all card-lift ${isPast ? 'opacity-60' : ''}`}
+                      style={{ backgroundColor: '#FEFDFB' }}
                     >
                       <DateBadge date={ev.date} />
                       <div className="flex-1 min-w-0">
