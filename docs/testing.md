@@ -152,6 +152,59 @@ node scripts/seed-test-data.mjs
 npx playwright test tests/e2e/requests.spec.ts
 ```
 
+### My Listings tests (`tests/e2e/my-listings.spec.ts`)
+
+These tests cover the owner dashboard (`/my-listings`), edit flows, and manual boost. They run under the test user's storage state.
+
+**Seed data requirements:**
+
+The test user (`TEST_USER_EMAIL`) must own at least one service listing for edit/boost tests to be meaningful. Tests that require a listing are designed to `test.skip()` gracefully if none exist, so the suite will not fail — but coverage will be partial.
+
+For full coverage, ensure the test user's Firestore documents include:
+
+| Type | businessName / title | status |
+|---|---|---|
+| Service | `[TEST] My Pending Service` | `pending` |
+| Service | `[TEST] My Approved Service` | `approved` |
+
+These are owner-specific — they must have `authorId` set to the `TEST_USER_EMAIL` account's UID. The seed script does not yet generate owner-specific data; create them manually or extend `seed-test-data.mjs`.
+
+**What these tests cover:**
+
+| Test | Consumes data? |
+|---|---|
+| Dashboard loads with both tabs | No |
+| How-it-works note is visible | No |
+| Unauthenticated visitor redirected to sign-in | No |
+| My Listings reachable from home page nav | No |
+| Approved card shows Boost button; pending card does not | No |
+| Edit link navigates to prefilled form | No |
+| Edit form prefilled with existing business name | No |
+| Saving edit shows success message, no duplicate | No (updates in-place) |
+| Non-existent service/product ID shows not-found | No |
+| Clicking Boost updates "Last boosted" date | No (updates in-place) |
+
+**Running My Listings tests only:**
+
+```bash
+npx playwright test tests/e2e/my-listings.spec.ts
+```
+
+**Manual test steps (if Playwright setup is not available):**
+
+1. Sign in as a user who has created at least one service.
+2. Navigate to `/my-listings`. Confirm the dashboard loads with both tabs.
+3. Click "My Services". Confirm the user's listings appear with correct status chips.
+4. On an **approved** listing: confirm "Boost listing" button is visible.
+5. Click "Boost listing". Confirm "Last boosted [date]" appears on the card.
+6. Navigate to `/services` browse. Confirm the boosted listing appears near the top.
+7. Click "Edit listing" on any card. Confirm the form pre-fills with existing data.
+8. Change the description field. Click "Save changes". Confirm "Changes saved" success message.
+9. Return to `/my-listings`. Confirm the card now shows `pending` status.
+10. Sign in as a **different** user. Navigate directly to `my-listings/services/{id}/edit` using the first user's listing ID. Confirm "Not found" is shown (no access leak).
+
+---
+
 ### Filtering tests (`tests/e2e/filtering.spec.ts`)
 
 These tests rely on seeded data but **do not consume it** (no status changes). Re-seeding between runs is not required unless moderation tests have changed the seed data.

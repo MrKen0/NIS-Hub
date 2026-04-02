@@ -43,6 +43,10 @@ export interface ProductListing {
   authorId: string;
   createdAt: string;
   updatedAt: string;
+  /** ISO string — set on create, updated on each manual boost */
+  surfacedAt?: string | null;
+  /** ISO string — set each time the owner manually boosts the listing */
+  lastRepublishedAt?: string | null;
 }
 
 // -------------------------------------------------------
@@ -82,6 +86,10 @@ export interface ServiceListing {
   authorId: string;
   createdAt: string;
   updatedAt: string;
+  /** ISO string — set on create, updated on each manual boost */
+  surfacedAt?: string | null;
+  /** ISO string — set each time the owner manually boosts the listing */
+  lastRepublishedAt?: string | null;
 }
 
 // -------------------------------------------------------

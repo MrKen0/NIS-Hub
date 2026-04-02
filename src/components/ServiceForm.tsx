@@ -26,6 +26,8 @@ export interface ServiceFormData {
 interface ServiceFormProps {
   defaultValues?: Partial<ServiceFormData>;
   onSubmit: (data: ServiceFormData) => Promise<void>;
+  /** Override the submit button label. Defaults to "Post Service". */
+  submitLabel?: string;
 }
 
 const AVAILABILITY_OPTIONS: { value: AvailabilityType; label: string }[] = [
@@ -37,7 +39,7 @@ const AVAILABILITY_OPTIONS: { value: AvailabilityType; label: string }[] = [
 
 const categoryKeys = Object.keys(SERVICE_CATEGORIES) as ServiceCategory[];
 
-export default function ServiceForm({ defaultValues, onSubmit }: ServiceFormProps) {
+export default function ServiceForm({ defaultValues, onSubmit, submitLabel }: ServiceFormProps) {
   const defaultExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().substring(0, 10);
 
   const [formData, setFormData] = useState<ServiceFormData>({
@@ -208,7 +210,7 @@ export default function ServiceForm({ defaultValues, onSubmit }: ServiceFormProp
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <Button type="submit" disabled={submitting} className="w-full">
-        {submitting ? 'Posting...' : 'Post Service'}
+        {submitting ? 'Saving...' : (submitLabel ?? 'Post Service')}
       </Button>
     </form>
   );

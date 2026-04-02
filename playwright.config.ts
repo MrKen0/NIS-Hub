@@ -54,7 +54,7 @@ export default defineConfig({
     // ----------------------------------------------------------------
     {
       name: 'Desktop Chrome',
-      testMatch: ['**/filtering.spec.ts', '**/matching.spec.ts', '**/requests.spec.ts'],
+      testMatch: ['**/filtering.spec.ts', '**/matching.spec.ts', '**/requests.spec.ts', '**/my-listings.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'playwright/.auth/user.json',
@@ -63,7 +63,7 @@ export default defineConfig({
     },
     {
       name: 'Mobile Chrome',
-      testMatch: ['**/filtering.spec.ts', '**/matching.spec.ts', '**/requests.spec.ts'],
+      testMatch: ['**/filtering.spec.ts', '**/matching.spec.ts', '**/requests.spec.ts', '**/my-listings.spec.ts'],
       use: {
         ...devices['Pixel 5'],
         storageState: 'playwright/.auth/user.json',

@@ -7,12 +7,13 @@ import { auth } from "@/lib/firebase/client";
 import { useAuth } from "@/lib/auth/AuthContext";
 
 const navItems = [
-  { id: "home",     label: "Home",     href: "/" },
-  { id: "services", label: "Services", href: "/services" },
-  { id: "products", label: "Products", href: "/products" },
-  { id: "events",   label: "Events",   href: "/events" },
-  { id: "notices",  label: "Notices",  href: "/notices" },
-  { id: "create",   label: "Create",   href: "/create" },
+  { id: "home",        label: "Home",        href: "/" },
+  { id: "services",    label: "Services",    href: "/services" },
+  { id: "products",    label: "Products",    href: "/products" },
+  { id: "events",      label: "Events",      href: "/events" },
+  { id: "notices",     label: "Notices",     href: "/notices" },
+  { id: "create",      label: "Create",      href: "/create" },
+  { id: "my-listings", label: "My Listings", href: "/my-listings" },
 ];
 
 export default function TopNav() {
