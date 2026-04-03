@@ -15,6 +15,8 @@ interface Props {
   createdAt: string;
   details: DetailRow[];
   bodyPreview?: string;
+  selected?: boolean;
+  onSelect?: (checked: boolean) => void;
   onApprove?: () => void;
   onReject?: () => void;
   onPause?: () => void;
@@ -33,6 +35,8 @@ export default function AdminContentCard({
   createdAt,
   details,
   bodyPreview,
+  selected,
+  onSelect,
   onApprove,
   onReject,
   onPause,
@@ -45,10 +49,23 @@ export default function AdminContentCard({
   const showArchive = status !== 'archived';
 
   return (
-    <div data-testid="content-card" className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm">
+    <div
+      data-testid="content-card"
+      className={`rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm transition-shadow${selected ? ' ring-2 ring-emerald-500/30' : ''}`}
+    >
       {/* Header */}
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="min-w-0">
+      <div className="flex items-start gap-3 mb-3">
+        {onSelect && (
+          <label className="flex items-center justify-center min-w-[44px] min-h-[44px] -ml-1 cursor-pointer flex-shrink-0">
+            <input
+              type="checkbox"
+              checked={selected ?? false}
+              onChange={(e) => onSelect(e.target.checked)}
+              className="w-4 h-4 rounded accent-emerald-600"
+            />
+          </label>
+        )}
+        <div className="min-w-0 flex-1">
           <h3 data-testid="card-title" className="font-semibold text-slate-900 line-clamp-1">{title}</h3>
           {subtitle && <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>}
         </div>

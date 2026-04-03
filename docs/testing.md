@@ -439,3 +439,56 @@ npx playwright test
 ```
 
 All existing tests must pass. The moderation tests run as admin (`ADMIN_EMAIL`) which retains full access under `canModerate()`.
+
+---
+
+## Phase 4 — Manual Verification Checklist
+
+### Bulk Actions (all 5 content panels)
+
+- [ ] Sign in as admin or moderator → navigate to `/admin`
+- [ ] Go to Services tab → filter: Pending → checkboxes appear on every card
+- [ ] Check one card → card gets emerald ring highlight
+- [ ] Check "Select all (n)" → all cards highlighted, count badge shows correctly
+- [ ] Uncheck "Select all" → all deselected (label reverts to "Select all (n)")
+- [ ] Select 2+ items → bulk bar appears above cards with action buttons and "{n} selected"
+- [ ] Click "Approve N" → confirmation dialog shows correct count and description
+- [ ] Confirm → success message "N items updated." displayed, selection cleared, cards refresh
+- [ ] Select items → change filter tab → selection clears automatically
+- [ ] With "Archived" filter active → bulk bar is NOT shown (archived is terminal)
+- [ ] Simulate partial failure (disconnect one doc mid-run) → "{succeeded} updated, {failed} failed." shown
+- [ ] Repeat full check on Products, Events, Notices, Requests tabs
+
+**Action button visibility by filter:**
+- [ ] Pending filter → shows: Approve, Reject, Archive
+- [ ] Approved filter → shows: Pause, Archive
+- [ ] Paused filter → shows: Approve, Archive
+- [ ] Rejected filter → shows: Approve, Archive
+- [ ] All / undefined filter → shows: Archive only
+- [ ] Archived filter → bulk bar hidden entirely
+
+### Home Dashboard Live Strips
+
+- [ ] Sign in as approved user → events strip appears below hero card, above nav grid
+- [ ] Notices strip appears below events strip
+- [ ] Sign in as **pending** user → both strips still visible
+- [ ] Each event card displays: date (day+month), title, location, "View →"
+- [ ] Clicking an event card navigates to `/events/{id}`
+- [ ] Each notice card displays: category pill, title, date, "View →"
+- [ ] Clicking a notice card navigates to `/notices/{id}`
+- [ ] With no approved events in Firestore → events strip (including "Upcoming Events" label) is hidden entirely
+- [ ] With no approved notices in Firestore → notices strip (including "Community Notices" label) is hidden entirely
+- [ ] On slow network → skeleton cards visible briefly during load
+- [ ] Strips show max 5 items each (not the full collection)
+
+### TypeScript + Lint
+
+- [ ] `npx tsc --noEmit` → zero errors
+- [ ] `npx eslint src/components/admin/AdminBulkActionBar.tsx src/components/admin/AdminContentCard.tsx src/components/admin/AdminServicePanel.tsx src/components/admin/AdminProductPanel.tsx src/components/admin/AdminEventPanel.tsx src/components/admin/AdminRequestPanel.tsx src/components/admin/AdminNoticePanel.tsx src/components/HomeEventStrip.tsx src/components/HomeNoticeStrip.tsx src/app/page.tsx --max-warnings 0` → zero warnings
+
+### MVP Limitations Retained
+
+- Bulk actions operate on currently-visible items only (the current filtered page)
+- AdminNoticePanel uses one-time fetch (not real-time); list refreshes after each bulk action
+- Home strips show up to 5 items each, ordered by `expiresAt` ascending (soonest first)
+- Home strips use client-side fetch on mount; no real-time subscription
