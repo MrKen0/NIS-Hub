@@ -1,5 +1,4 @@
 import {
-  addDoc,
   collection,
   doc,
   getDocs,
@@ -10,7 +9,7 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
+import { auth, db } from '@/lib/firebase/client';
 import { mapDoc } from '@/lib/firebase/mapDoc';
 import type { ServiceListing } from '@/types/content';
 
@@ -28,14 +27,29 @@ type UpdateServiceListingData = Partial<
 // ---------- Create ----------
 
 export async function createServiceListing(data: CreateServiceListingData): Promise<string> {
-  const docRef = await addDoc(collection(db, 'serviceListings'), {
-    ...data,
-    status: 'pending',
-    surfacedAt: serverTimestamp(),   // enables freshness sort from day one
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
+  // Strip server-set fields — authorId, surfacedAt, and safety fields are set server-side
+  const { authorId: _a, flagged: _f, flagReason: _fr, ...bodyData } = data;
+
+  const token = await auth.currentUser?.getIdToken();
+  const res = await fetch('/api/content/service', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token ?? ''}`,
+    },
+    body: JSON.stringify(bodyData),
   });
-  return docRef.id;
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as Record<string, unknown>;
+    if (body.code === 'CONTENT_BLOCKED') {
+      throw new Error('Your content could not be posted. Please review and try again.');
+    }
+    throw new Error('Failed to post service listing. Please try again.');
+  }
+
+  const { id } = await res.json() as { id: string };
+  return id;
 }
 
 // ---------- Owner queries ----------

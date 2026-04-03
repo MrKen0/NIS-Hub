@@ -248,6 +248,17 @@ service cloud.firestore {
     }
 
     // -------------------------------------------------------
+    // Content Policies — keyword blocklist / flaglist
+    // -------------------------------------------------------
+    // Admin-only: these documents must never be readable from the client.
+    // The safety check runs server-side via the Admin SDK in API routes,
+    // bypassing these rules entirely. The rules here are a defence-in-depth
+    // safeguard to ensure no client can read keyword lists directly.
+    match /contentPolicies/{policyId} {
+      allow read, write: if isAdmin();
+    }
+
+    // -------------------------------------------------------
     // Catch-all: deny everything not explicitly allowed above
     // -------------------------------------------------------
     match /{document=**} {
