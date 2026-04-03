@@ -15,7 +15,10 @@ export default function CreateNoticePage() {
   const router = useRouter();
   const [success, setSuccess] = useState(false);
 
-  const isAllowed = profile?.role === 'contributor' || profile?.role === 'admin';
+  const isAllowed =
+    profile?.role === 'contributor' ||
+    profile?.role === 'moderator' ||
+    profile?.role === 'admin';
 
   const handleSubmit = async (data: NoticeFormData) => {
     if (!user) return;

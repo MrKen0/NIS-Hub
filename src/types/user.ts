@@ -5,7 +5,10 @@
  */
 
 // What the member does in the community
-export type UserRole = "member" | "provider" | "contributor" | "admin";
+// 'moderator' is the formal role for content reviewers going forward.
+// 'contributor' is retained as a transitional alias — existing holders keep full access.
+// New moderation appointments should use 'moderator' only.
+export type UserRole = "member" | "provider" | "contributor" | "moderator" | "admin";
 
 // Where they are in the approval pipeline
 export type UserStatus = "pending" | "approved" | "paused" | "archived";
@@ -28,6 +31,8 @@ export interface UserProfile {
   rulesAccepted: boolean;
   rulesAcceptedAt: Date | null;
   onboardingComplete: boolean;
+  team?: string;          // primary team assignment (single team — multi-team deferred)
+  teamRole?: 'Lead' | 'Member';
   createdAt: Date;
   updatedAt: Date;
 }

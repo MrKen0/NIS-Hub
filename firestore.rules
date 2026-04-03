@@ -6,7 +6,8 @@ rules_version = '2';
 // These rules control who can read and write data in the database.
 // They run on Firebase's servers — not in your app code.
 //
-// Role hierarchy:  member < provider < contributor < admin
+// Role hierarchy:  member < provider < moderator < admin
+//   'contributor' is a transitional alias for 'moderator' (backward compat — not newly assigned)
 // Roles are stored in the user's Firestore document (users/{uid}.role).
 //
 // NOTE: We read roles from Firestore documents rather than custom claims
@@ -37,6 +38,8 @@ service cloud.firestore {
     }
 
     // Is the user a contributor or admin? (elevated privileges)
+    // Retained for any future reference — no longer called directly.
+    // Use canModerate() instead, which also covers the 'moderator' role.
     function isContributorOrAdmin() {
       return isSignedIn()
         && (getUserData().role == 'contributor' || getUserData().role == 'admin');
@@ -52,12 +55,27 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // ── Moderation role checks ────────────────────────────────────────────────
+    // 'moderator' is the formal role going forward.
+    // 'contributor' is retained as a transitional alias: existing contributor-role
+    // users keep full moderation privileges without a data migration.
+    // New moderation appointments should use 'moderator' only.
+    function isModerator() {
+      return isSignedIn()
+        && getUserData().role in ['moderator', 'contributor', 'admin'];
+    }
+
+    // Canonical permission check for all content moderation operations.
+    function canModerate() {
+      return isModerator();
+    }
+
     // -------------------------------------------------------
     // Users collection
     // -------------------------------------------------------
     match /users/{userId} {
       // Users can read their own profile; contributors/admins can read any
-      allow read: if isOwner(userId) || isContributorOrAdmin();
+      allow read: if isOwner(userId) || canModerate();
 
       // Users can create their own profile on first sign-in (onboarding)
       // Role must be "member" and status must be "pending" — no self-promotion
@@ -131,7 +149,7 @@ service cloud.firestore {
         )
 
         // ── Moderator / admin: unrestricted ──────────────────────────────────
-        || isContributorOrAdmin()
+        || canModerate()
       );
 
       allow delete: if isSignedIn()
@@ -175,7 +193,7 @@ service cloud.firestore {
         )
 
         // ── Moderator / admin: unrestricted ──────────────────────────────────
-        || isContributorOrAdmin()
+        || canModerate()
       );
 
       allow delete: if isSignedIn()
@@ -192,7 +210,7 @@ service cloud.firestore {
         && request.resource.data.authorId == request.auth.uid;
 
       allow update: if isSignedIn()
-        && (resource.data.authorId == request.auth.uid || isContributorOrAdmin());
+        && (resource.data.authorId == request.auth.uid || canModerate());
 
       allow delete: if isSignedIn()
         && (resource.data.authorId == request.auth.uid || isAdmin());
@@ -209,7 +227,7 @@ service cloud.firestore {
 
       // Organiser or contributor/admin can edit
       allow update: if isSignedIn()
-        && (resource.data.authorId == request.auth.uid || isContributorOrAdmin());
+        && (resource.data.authorId == request.auth.uid || canModerate());
 
       allow delete: if isSignedIn()
         && (resource.data.authorId == request.auth.uid || isAdmin());
@@ -229,8 +247,8 @@ service cloud.firestore {
       allow read: if isSignedIn();
 
       // Only contributors and admins can create/edit/delete notices
-      allow create: if isContributorOrAdmin();
-      allow update: if isContributorOrAdmin();
+      allow create: if canModerate();
+      allow update: if canModerate();
       allow delete: if isAdmin();
     }
 
@@ -239,8 +257,8 @@ service cloud.firestore {
     // -------------------------------------------------------
     match /moderationActions/{actionId} {
       // Only contributors/admins can read and write moderation logs
-      allow read: if isContributorOrAdmin();
-      allow create: if isContributorOrAdmin();
+      allow read: if canModerate();
+      allow create: if canModerate();
 
       // Moderation records are immutable — no updates or deletes
       allow update: if false;
