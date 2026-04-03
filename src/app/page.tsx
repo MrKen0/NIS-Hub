@@ -5,6 +5,8 @@ import { useEffect } from "react";
 import AppShell from "@/components/AppShell";
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/lib/auth/AuthContext";
+import HomeEventStrip from "@/components/HomeEventStrip";
+import HomeNoticeStrip from "@/components/HomeNoticeStrip";
 
 const ROLE_LABELS: Record<string, string> = {
   member:      "Community Member",
@@ -296,6 +298,10 @@ function HomeContent() {
           </div>
         </div>
       )}
+
+      {/* ── Home feed strips ─────────────────────────── */}
+      <HomeEventStrip />
+      <HomeNoticeStrip />
 
       {/* ── Section label ─────────────────────────────── */}
       <div
