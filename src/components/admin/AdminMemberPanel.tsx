@@ -230,8 +230,10 @@ export default function AdminMemberPanel({ onActionComplete }: Props) {
 
               {/* Actions */}
               <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
-                {/* Status actions */}
-                {m.status === 'pending' && (
+                {/* Status actions — admin-only.
+                    Firestore users/{uid} update requires isAdmin() for status changes.
+                    Moderators can view member cards but cannot change member status. */}
+                {profile?.role === 'admin' && m.status === 'pending' && (
                   <button
                     data-testid="approve-btn"
                     onClick={() => handleAction(m.uid, 'status', m.status, 'approved')}
@@ -240,7 +242,7 @@ export default function AdminMemberPanel({ onActionComplete }: Props) {
                     Approve
                   </button>
                 )}
-                {(m.status === 'pending' || m.status === 'approved') && (
+                {profile?.role === 'admin' && (m.status === 'pending' || m.status === 'approved') && (
                   <button
                     data-testid="pause-btn"
                     onClick={() => openStatusDialog(m.uid, m.status, 'paused')}
@@ -249,7 +251,7 @@ export default function AdminMemberPanel({ onActionComplete }: Props) {
                     Pause
                   </button>
                 )}
-                {m.status === 'paused' && (
+                {profile?.role === 'admin' && m.status === 'paused' && (
                   <button
                     data-testid="approve-btn"
                     onClick={() => handleAction(m.uid, 'status', m.status, 'approved')}
@@ -258,7 +260,7 @@ export default function AdminMemberPanel({ onActionComplete }: Props) {
                     Approve
                   </button>
                 )}
-                {m.status !== 'archived' && (
+                {profile?.role === 'admin' && m.status !== 'archived' && (
                   <button
                     data-testid="archive-btn"
                     onClick={() => openStatusDialog(m.uid, m.status, 'archived')}
