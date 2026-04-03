@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import StatusChip from '@/components/StatusChip';
 import ModerationConfirmDialog from './ModerationConfirmDialog';
-import { subscribeToUsersForReview, moderateUser } from '@/services/moderationService';
+import { subscribeToUsersForReview, moderateUser, updateMemberTeam } from '@/services/moderationService';
 import type { UserProfile, UserStatus, UserRole } from '@/types/user';
 
 const STATUS_FILTERS: { label: string; value: UserStatus | undefined }[] = [
@@ -15,7 +15,17 @@ const STATUS_FILTERS: { label: string; value: UserStatus | undefined }[] = [
   { label: 'Archived', value: 'archived' },
 ];
 
-const ROLES: UserRole[] = ['member', 'provider', 'contributor', 'admin'];
+// contributor: transitional alias only — not offered as a new assignment option.
+// admin: manual/special action — intentionally excluded from routine UI.
+const ROLES: UserRole[] = ['member', 'provider', 'moderator'];
+
+const TEAMS = [
+  'Community Management Team',
+  'Event Organisation Team',
+  'Technical & Social Media',
+  'Strategy & Welfare',
+  'Admin & Finance',
+] as const;
 
 function fmtDate(d: Date) {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -30,6 +40,7 @@ export default function AdminMemberPanel({ onActionComplete }: Props) {
   const [statusFilter, setStatusFilter] = useState<UserStatus | undefined>('pending');
   const [error, setError] = useState('');
 
+  // Role/status change dialog
   const [dialog, setDialog] = useState<{
     uid: string;
     fieldChanged: 'status' | 'role';
@@ -37,6 +48,17 @@ export default function AdminMemberPanel({ onActionComplete }: Props) {
     newValue: string;
     title: string;
   } | null>(null);
+
+  // Team assignment dialog
+  const [teamDialog, setTeamDialog] = useState<{
+    uid: string;
+    displayName: string;
+    currentTeam: string | null;
+    currentTeamRole: 'Lead' | 'Member' | null;
+  } | null>(null);
+  const [pendingTeam, setPendingTeam] = useState<string>('');
+  const [pendingTeamRole, setPendingTeamRole] = useState<'Lead' | 'Member'>('Member');
+  const [teamActionPending, setTeamActionPending] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -73,6 +95,26 @@ export default function AdminMemberPanel({ onActionComplete }: Props) {
     }
   }
 
+  async function handleTeamAction() {
+    if (!teamDialog || !user || !profile) return;
+    setTeamActionPending(true);
+    try {
+      await updateMemberTeam({
+        uid: teamDialog.uid,
+        team: pendingTeam || null,
+        teamRole: pendingTeam ? pendingTeamRole : null,
+        moderatorId: user.uid,
+        moderatorName: profile.displayName,
+      });
+      onActionComplete?.();
+      setTeamDialog(null);
+    } catch {
+      setError('Failed to update team assignment.');
+    } finally {
+      setTeamActionPending(false);
+    }
+  }
+
   function openStatusDialog(uid: string, currentStatus: string, newStatus: string) {
     const labels: Record<string, string> = { approved: 'Approve', paused: 'Pause', archived: 'Archive' };
     setDialog({
@@ -92,6 +134,17 @@ export default function AdminMemberPanel({ onActionComplete }: Props) {
       newValue: newRole,
       title: `Change role to ${newRole}`,
     });
+  }
+
+  function openTeamDialog(m: UserProfile) {
+    setTeamDialog({
+      uid: m.uid,
+      displayName: m.displayName,
+      currentTeam: m.team ?? null,
+      currentTeamRole: m.teamRole ?? null,
+    });
+    setPendingTeam(m.team ?? '');
+    setPendingTeamRole(m.teamRole ?? 'Member');
   }
 
   return (
@@ -165,6 +218,14 @@ export default function AdminMemberPanel({ onActionComplete }: Props) {
                   <span className="text-slate-400">Joined:</span>
                   <span className="text-slate-700 font-medium">{fmtDate(m.createdAt)}</span>
                 </div>
+                {m.team && (
+                  <div className="flex gap-1 col-span-2">
+                    <span className="text-slate-400">Team:</span>
+                    <span className="text-slate-700 font-medium">
+                      {m.team}{m.teamRole ? ` (${m.teamRole})` : ''}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Actions */}
@@ -207,18 +268,32 @@ export default function AdminMemberPanel({ onActionComplete }: Props) {
                   </button>
                 )}
 
-                {/* Role selector — only for non-archived members, don't allow changing own role */}
-                {m.status !== 'archived' && m.uid !== user?.uid && (
+                {/* Role selector — admin-only; not for archived members or self */}
+                {profile?.role === 'admin' && m.status !== 'archived' && m.uid !== user?.uid && (
                   <select
-                    value={m.role}
+                    value={ROLES.includes(m.role as typeof ROLES[number]) ? m.role : m.role}
                     onChange={(e) => openRoleDialog(m.uid, m.role, e.target.value)}
                     className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 min-h-[44px] ml-auto"
                     aria-label={`Change role for ${m.displayName}`}
                   >
+                    {/* Always show current role even if it's admin/contributor (backward compat) */}
+                    {!ROLES.includes(m.role as typeof ROLES[number]) && (
+                      <option value={m.role}>{m.role.charAt(0).toUpperCase() + m.role.slice(1)}</option>
+                    )}
                     {ROLES.map((r) => (
                       <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
                     ))}
                   </select>
+                )}
+
+                {/* Team assign button — admin-only */}
+                {profile?.role === 'admin' && m.status !== 'archived' && m.uid !== user?.uid && (
+                  <button
+                    onClick={() => openTeamDialog(m)}
+                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 min-h-[44px] hover:bg-slate-50 transition-colors"
+                  >
+                    {m.team ? 'Change team' : 'Assign team'}
+                  </button>
                 )}
 
                 {m.status === 'archived' && (
@@ -230,6 +305,7 @@ export default function AdminMemberPanel({ onActionComplete }: Props) {
         </div>
       )}
 
+      {/* Role / status confirmation dialog */}
       {dialog && (
         <ModerationConfirmDialog
           open
@@ -247,6 +323,65 @@ export default function AdminMemberPanel({ onActionComplete }: Props) {
           }}
           onCancel={() => setDialog(null)}
         />
+      )}
+
+      {/* Team assignment modal */}
+      {teamDialog && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h2 className="text-lg font-semibold text-slate-900 mb-1">
+              Assign team
+            </h2>
+            <p className="text-sm text-slate-500 mb-4">{teamDialog.displayName}</p>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Team</label>
+                <select
+                  value={pendingTeam}
+                  onChange={(e) => setPendingTeam(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700 min-h-[44px]"
+                >
+                  <option value="">No team</option>
+                  {TEAMS.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+
+              {pendingTeam && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Team role</label>
+                  <select
+                    value={pendingTeamRole}
+                    onChange={(e) => setPendingTeamRole(e.target.value as 'Lead' | 'Member')}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700 min-h-[44px]"
+                  >
+                    <option value="Member">Member</option>
+                    <option value="Lead">Lead</option>
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleTeamAction}
+                disabled={teamActionPending}
+                className="flex-1 rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-900 transition min-h-[44px] disabled:opacity-50"
+              >
+                {teamActionPending ? 'Saving…' : 'Confirm'}
+              </button>
+              <button
+                onClick={() => setTeamDialog(null)}
+                disabled={teamActionPending}
+                className="flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition min-h-[44px] disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

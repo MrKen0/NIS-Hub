@@ -374,3 +374,68 @@ All four cases are now automated in `tests/e2e/requests.spec.ts` under the `"Req
 - Preview is skipped when category routes to products ✓
 
 See the [Requests tests](#requests-tests-testse2erequestsspects) section above for seed data requirements and the safe run sequence.
+
+---
+
+## Phase 3C — Manual Verification Checklist
+
+These steps are performed manually against the deployed app (or local dev server) after Phase 3C is deployed. No new Playwright tests are added for Phase 3C — existing moderation tests (which run as admin) must continue to pass.
+
+### Pre-requisites
+
+- Admin account (`ADMIN_EMAIL`) must be available.
+- A second Firebase Auth account to promote to `moderator` (any approved member will do).
+
+### Moderator role assignment
+
+1. Sign in as admin. Go to `/admin` → Members tab.
+2. Find the test member. Confirm the role dropdown shows **Member**, **Provider**, **Moderator** — and does **not** show Admin or Contributor.
+3. Select **Moderator** from the dropdown. Confirm the confirmation dialog appears.
+4. Confirm the action. Verify `users/{uid}.role === 'moderator'` in Firestore.
+5. Verify a `moderationActions` document exists with `fieldChanged: 'role'`, `newValue: 'moderator'`.
+
+### Moderator access — can do
+
+6. Sign in as the newly promoted moderator.
+7. Navigate to `/admin`. Confirm the dashboard loads (not redirected to home).
+8. Confirm all content tabs are visible (Services, Products, Events, Notices, Requests).
+9. Approve or reject a pending listing. Confirm the action succeeds.
+10. Navigate to the Members tab. Confirm member cards are visible.
+11. Navigate to `/create/notice`. Confirm the notice form loads (not the "Access restricted" message).
+12. Navigate to the History tab. Confirm moderation history is visible.
+
+### Moderator access — cannot do
+
+13. On member cards: confirm the **role dropdown is not rendered** for the moderator.
+14. On member cards: confirm the **"Assign team" / "Change team" button is not rendered** for the moderator.
+15. In the browser console, attempt `fetch('/api/admin/...')` or a direct Firestore read of `contentPolicies` — confirm Firestore returns `permission-denied`.
+
+### Contributor backward compatibility
+
+16. If a member with `role: 'contributor'` exists, sign in as them.
+17. Confirm they can access `/admin`, moderate content, and access `/create/notice`.
+18. Sign in as admin. Confirm the contributor's role chip displays "Contributor" correctly on their member card.
+19. Confirm the role dropdown on their card does **not** include a Contributor option (only Member, Provider, Moderator).
+
+### Team assignment (admin-only)
+
+20. Sign in as admin. Go to `/admin` → Members tab.
+21. On any approved member card (not own account), confirm the **"Assign team"** button is visible.
+22. Click **"Assign team"**. Confirm the modal opens with heading "Assign team" and the member's name.
+23. Select a team (e.g. "Community Management Team") and a role (e.g. "Lead"). Click Confirm.
+24. Verify `users/{uid}.team === 'Community Management Team'` and `teamRole === 'Lead'` in Firestore.
+25. Verify a `moderationActions` document with `actionType: 'team_assignment'`, `fieldChanged: 'team_assignment'`, `newValue: 'Community Management Team (Lead)'`.
+26. Return to the Members tab. Confirm the member card now shows the team row: **Team: Community Management Team (Lead)**.
+27. Click **"Change team"**. Select "No team". Confirm.
+28. Verify `team` and `teamRole` are `null` in Firestore. Verify `moderationActions` with `newValue: 'none'`.
+29. Confirm the team row no longer appears on the member card.
+
+### Regression — existing Playwright tests
+
+```bash
+node scripts/seed-test-data.mjs --clean
+node scripts/seed-test-data.mjs
+npx playwright test
+```
+
+All existing tests must pass. The moderation tests run as admin (`ADMIN_EMAIL`) which retains full access under `canModerate()`.

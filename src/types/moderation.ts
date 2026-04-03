@@ -11,7 +11,8 @@ export type ModerationActionType =
   | 'pause'
   | 'archive'
   | 'restore'
-  | 'role_change';
+  | 'role_change'
+  | 'team_assignment';
 
 export type ModerationTargetType =
   | 'productListing'

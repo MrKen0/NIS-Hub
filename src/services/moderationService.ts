@@ -74,6 +74,8 @@ function mapUserDoc(snap: { id: string; data: () => Record<string, unknown> }): 
       ? (d.rulesAcceptedAt as { toDate: () => Date }).toDate()
       : null,
     onboardingComplete: (d.onboardingComplete as boolean) ?? false,
+    team: (d.team as string) ?? undefined,
+    teamRole: (d.teamRole as 'Lead' | 'Member') ?? undefined,
     createdAt: d.createdAt && typeof d.createdAt === 'object' && 'toDate' in d.createdAt
       ? (d.createdAt as { toDate: () => Date }).toDate()
       : new Date(),
@@ -318,6 +320,48 @@ export async function getPendingCounts(): Promise<{
   ]);
 
   return { services, products, events, notices, requests, members, history: 0 };
+}
+
+// ---------- Team assignment ----------
+
+/**
+ * Assign (or remove) a team and teamRole for a member.
+ * Admin-only in practice — the UI guards this, and the Firestore rule for
+ * user updates requires the caller to be the owner (no role/status changes)
+ * or an admin.
+ * Logs a 'team_assignment' action in moderationActions for full audit trail.
+ */
+export async function updateMemberTeam(params: {
+  uid: string;
+  team: string | null;
+  teamRole: 'Lead' | 'Member' | null;
+  moderatorId: string;
+  moderatorName: string;
+}): Promise<void> {
+  // 1. Write the team fields to the user document
+  await updateDoc(doc(db, 'users', params.uid), {
+    team: params.team ?? null,
+    teamRole: params.teamRole ?? null,
+    updatedAt: serverTimestamp(),
+  });
+
+  // 2. Log the moderation action (immutable audit record)
+  const newValue = params.team
+    ? `${params.team}${params.teamRole ? ` (${params.teamRole})` : ''}`
+    : 'none';
+
+  await addDoc(collection(db, 'moderationActions'), {
+    actionType: 'team_assignment',
+    targetType: 'user' as ModerationTargetType,
+    targetId: params.uid,
+    fieldChanged: 'team_assignment',
+    previousValue: '',   // previous team not fetched — kept minimal for audit simplicity
+    newValue,
+    moderatorId: params.moderatorId,
+    moderatorName: params.moderatorName,
+    reason: null,
+    createdAt: serverTimestamp(),
+  });
 }
 
 // ---------- Moderation history ----------
