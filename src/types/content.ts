@@ -47,6 +47,10 @@ export interface ProductListing {
   surfacedAt?: string | null;
   /** ISO string — set each time the owner manually boosts the listing */
   lastRepublishedAt?: string | null;
+  /** Set server-side when content matches a flagged keyword policy. */
+  flagged?: boolean;
+  /** Always 'keyword_policy' when set — the matched term is never stored. */
+  flagReason?: string;
 }
 
 // -------------------------------------------------------
@@ -90,6 +94,10 @@ export interface ServiceListing {
   surfacedAt?: string | null;
   /** ISO string — set each time the owner manually boosts the listing */
   lastRepublishedAt?: string | null;
+  /** Set server-side when content matches a flagged keyword policy. */
+  flagged?: boolean;
+  /** Always 'keyword_policy' when set — the matched term is never stored. */
+  flagReason?: string;
 }
 
 // -------------------------------------------------------
@@ -124,6 +132,10 @@ export interface HelpRequest {
   authorId: string;
   createdAt: string;
   updatedAt: string;
+  /** Set server-side when content matches a flagged keyword policy. */
+  flagged?: boolean;
+  /** Always 'keyword_policy' when set — the matched term is never stored. */
+  flagReason?: string;
 }
 
 // -------------------------------------------------------
@@ -181,6 +193,10 @@ export interface CommunityEvent {
   createdAt: string;
   updatedAt: string;
   rsvpCount: number;
+  /** Set server-side when content matches a flagged keyword policy. */
+  flagged?: boolean;
+  /** Always 'keyword_policy' when set — the matched term is never stored. */
+  flagReason?: string;
 }
 
 // -------------------------------------------------------
@@ -205,6 +221,10 @@ export interface CommunityNotice {
   authorId: string;
   createdAt: string;
   updatedAt: string;
+  /** Set server-side when content matches a flagged keyword policy. */
+  flagged?: boolean;
+  /** Always 'keyword_policy' when set — the matched term is never stored. */
+  flagReason?: string;
 }
 
 // -------------------------------------------------------

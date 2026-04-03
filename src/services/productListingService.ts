@@ -1,5 +1,4 @@
 import {
-  addDoc,
   collection,
   doc,
   getDocs,
@@ -11,7 +10,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '@/lib/firebase/client';
+import { auth, db, storage } from '@/lib/firebase/client';
 import { mapDoc } from '@/lib/firebase/mapDoc';
 import type { ProductListing } from '@/types/content';
 
@@ -43,18 +42,52 @@ export async function createProductListing(
   images: File[],
   uid: string,
 ): Promise<string> {
-  const imageUrls = await Promise.all(images.map((file) => uploadProductImage(uid, file)));
+  const token = await auth.currentUser?.getIdToken();
 
-  const docRef = await addDoc(collection(db, 'productListings'), {
-    ...data,
-    imageUrls,
-    status: 'pending',
-    surfacedAt: serverTimestamp(),   // enables freshness sort from day one
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
+  // ── Step 1: precheck before any image upload ─────────────────────────────
+  // Prevents orphaned Storage files when content is blocked.
+  const precheckRes = await fetch('/api/content/product/precheck', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token ?? ''}`,
+    },
+    body: JSON.stringify({ title: data.title, description: data.description }),
   });
 
-  return docRef.id;
+  if (!precheckRes.ok) {
+    const precheckBody = await precheckRes.json().catch(() => ({})) as Record<string, unknown>;
+    if (precheckBody.code === 'CONTENT_BLOCKED') {
+      throw new Error('Your content could not be posted. Please review and try again.');
+    }
+    throw new Error('Failed to post product listing. Please try again.');
+  }
+
+  // ── Step 2: upload images (only reached if precheck passed) ──────────────
+  const imageUrls = await Promise.all(images.map((file) => uploadProductImage(uid, file)));
+
+  // ── Step 3: create document via API (re-runs safety check server-side) ───
+  const { authorId: _a, flagged: _f, flagReason: _fr, ...bodyData } = data;
+
+  const createRes = await fetch('/api/content/product', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token ?? ''}`,
+    },
+    body: JSON.stringify({ ...bodyData, imageUrls }),
+  });
+
+  if (!createRes.ok) {
+    const createBody = await createRes.json().catch(() => ({})) as Record<string, unknown>;
+    if (createBody.code === 'CONTENT_BLOCKED') {
+      throw new Error('Your content could not be posted. Please review and try again.');
+    }
+    throw new Error('Failed to post product listing. Please try again.');
+  }
+
+  const { id } = await createRes.json() as { id: string };
+  return id;
 }
 
 // ---------- Owner queries ----------

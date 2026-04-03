@@ -7,32 +7,58 @@
  * IMPORTANT: Never import this file from a client component.
  * If you see "firebase-admin" in the browser bundle, something is wrong.
  *
+ * Lazy initialisation: the Admin SDK is NOT initialised at module import time.
+ * This prevents build failures in environments where FIREBASE_ADMIN_* env vars
+ * are absent (e.g. CI/CD `next build` steps). The app is created on the first
+ * actual request that calls getAdminAuth() or getAdminDb().
+ *
  * Usage in a server file:
- *   import { adminAuth, adminDb, adminStorage } from "@/lib/firebase/admin";
+ *   import { getAdminAuth, getAdminDb } from "@/lib/firebase/admin";
+ *   const auth = getAdminAuth();
+ *   const db   = getAdminDb();
  */
 
-import { initializeApp, getApps, cert } from "firebase-admin/app";
+import { getApps, initializeApp, cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { firebaseAdminConfig } from "./config";
 
-// Only initialise once — same hot-reload guard as the client SDK
-if (getApps().length === 0) {
+function ensureInitialized(): void {
+  if (getApps().length > 0) return;
+
   initializeApp({
     credential: cert({
-      projectId: firebaseAdminConfig.projectId,
+      projectId:   firebaseAdminConfig.projectId,
       clientEmail: firebaseAdminConfig.clientEmail,
-      privateKey: firebaseAdminConfig.privateKey,
+      privateKey:  firebaseAdminConfig.privateKey,
     }),
   });
 }
 
-// --- Admin Auth: verify tokens, set custom claims (roles), manage users ---
-export const adminAuth = getAuth();
+// --- Lazy getters — only initialise the Admin SDK on first actual use ---
 
-// --- Admin Firestore: read/write any document without security rules ---
-export const adminDb = getFirestore();
+/** Returns the Admin Auth instance (initialises the Admin app on first call). */
+export function getAdminAuth() {
+  ensureInitialized();
+  return getAuth();
+}
 
-// --- Admin Storage: manage uploaded files ---
-export const adminStorage = getStorage();
+/** Returns the Admin Firestore instance (initialises the Admin app on first call). */
+export function getAdminDb() {
+  ensureInitialized();
+  return getFirestore();
+}
+
+/** Returns the Admin Storage instance (initialises the Admin app on first call). */
+export function getAdminStorage() {
+  ensureInitialized();
+  return getStorage();
+}
+
+// Kept for any existing callers that import { adminAuth, adminDb, adminStorage }.
+// These are now thin wrappers — property access triggers lazy initialisation.
+// New code should prefer the getter functions above.
+export const adminAuth    = { verifyIdToken: (...args: Parameters<ReturnType<typeof getAuth>['verifyIdToken']>) => getAdminAuth().verifyIdToken(...args) };
+export const adminDb      = new Proxy({} as ReturnType<typeof getFirestore>, { get(_t, p) { return (getAdminDb() as unknown as Record<string | symbol, unknown>)[p]; } });
+export const adminStorage = new Proxy({} as ReturnType<typeof getStorage>,   { get(_t, p) { return (getAdminStorage() as unknown as Record<string | symbol, unknown>)[p]; } });
