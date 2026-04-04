@@ -10,10 +10,21 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { createServiceListing } from '@/services/serviceListingService';
 import type { ServiceCategory, AvailabilityType } from '@/types/content';
 
+/** Returns true if the current time is Thursday in the UK (Europe/London). */
+function isThursdayUK(): boolean {
+  return new Date().toLocaleDateString('en-GB', {
+    timeZone: 'Europe/London',
+    weekday: 'long',
+  }) === 'Thursday';
+}
+
 export default function CreateServicePage() {
   const { user, profile } = useAuth();
   const router = useRouter();
   const [success, setSuccess] = useState(false);
+
+  const isElevated = profile?.role === 'admin' || profile?.role === 'moderator' || profile?.role === 'contributor';
+  const postingBlocked = !isThursdayUK() && !isElevated;
 
   const handleSubmit = async (data: ServiceFormData) => {
     if (!user) return;
@@ -64,15 +75,43 @@ export default function CreateServicePage() {
               }
             />
           ) : (
-            <ServiceForm
-              defaultValues={{
-                businessName: profile?.displayName ?? '',
-                whatsapp: profile?.phone ?? '',
-                phone: profile?.phone ?? '',
-                serviceAreas: profile?.area ? [profile.area] : [],
-              }}
-              onSubmit={handleSubmit}
-            />
+            <>
+              {postingBlocked && (
+                <div
+                  className="rounded-xl p-4 flex gap-3 mb-6"
+                  style={{ background: '#FFFBEB', border: '1px solid #FDE68A' }}
+                >
+                  <div
+                    className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm"
+                    style={{ background: '#FEF3C7', color: '#D97706' }}
+                  >
+                    📅
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm" style={{ color: '#92400E' }}>
+                      New listings open on Thursdays only
+                    </p>
+                    <p className="mt-0.5 text-xs leading-relaxed" style={{ color: '#B45309' }}>
+                      To keep the community marketplace organised, new service and product listings
+                      can only be submitted on Thursdays. You can browse the form and prepare your
+                      details now — the submit button will be enabled again on Thursday.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <fieldset disabled={postingBlocked} className="contents">
+                <ServiceForm
+                  defaultValues={{
+                    businessName: profile?.displayName ?? '',
+                    whatsapp: profile?.phone ?? '',
+                    phone: profile?.phone ?? '',
+                    serviceAreas: profile?.area ? [profile.area] : [],
+                  }}
+                  onSubmit={handleSubmit}
+                />
+              </fieldset>
+            </>
           )}
         </div>
       </AppShell>
