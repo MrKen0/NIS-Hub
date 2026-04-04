@@ -330,7 +330,7 @@ export default function AdminMemberPanel({ onActionComplete }: Props) {
       {/* Team assignment modal */}
       {teamDialog && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 pb-8 shadow-xl overflow-y-auto max-h-[85vh]">
             <h2 className="text-lg font-semibold text-slate-900 mb-1">
               Assign team
             </h2>
