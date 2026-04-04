@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/lib/auth/AuthContext";
 import HomeEventStrip from "@/components/HomeEventStrip";
 import HomeNoticeStrip from "@/components/HomeNoticeStrip";
+import { getPendingCounts } from "@/services/moderationService";
 
 const ROLE_LABELS: Record<string, string> = {
   member:      "Community Member",
@@ -159,16 +160,238 @@ const HOW_IT_WORKS = [
   },
 ];
 
+// ── Dashboard types & data ────────────────────────────────────
+
+type PendingCounts = {
+  members:  number;
+  services: number;
+  products: number;
+  events:   number;
+  notices:  number;
+  requests: number;
+  history:  number;
+};
+
+const ZERO_COUNTS: PendingCounts = {
+  members: 0, services: 0, products: 0, events: 0, notices: 0, requests: 0, history: 0,
+};
+
+const DASHBOARD_ITEMS: { key: keyof PendingCounts; label: string; emoji: string }[] = [
+  { key: 'members',  label: 'Members',  emoji: '👥' },
+  { key: 'services', label: 'Services', emoji: '🔧' },
+  { key: 'products', label: 'Products', emoji: '📦' },
+  { key: 'events',   label: 'Events',   emoji: '📅' },
+  { key: 'notices',  label: 'Notices',  emoji: '📢' },
+  { key: 'requests', label: 'Requests', emoji: '🙋' },
+];
+
+// ─────────────────────────────────────────────────────────────
+
 export default function Home() {
+  const { profile } = useAuth();
+
+  const isElevated =
+    profile?.role === 'admin' ||
+    profile?.role === 'moderator' ||
+    profile?.role === 'contributor';
+
+  const [homeMode, setHomeMode] = useState<'dashboard' | 'member' | null>(null);
+  const [counts, setCounts] = useState<PendingCounts>(ZERO_COUNTS);
+
+  // Hydration-safe: read sessionStorage after mount (elevated users only).
+  // Starts null so SSR and first render never touch browser APIs.
+  useEffect(() => {
+    if (!isElevated) return;
+    const stored = sessionStorage.getItem('nis-home-view');
+    setHomeMode(stored === 'member' ? 'member' : 'dashboard');
+  }, [isElevated]);
+
+  // Fetch pending counts only when elevated AND in dashboard mode.
+  useEffect(() => {
+    if (!isElevated || homeMode !== 'dashboard') return;
+    getPendingCounts()
+      .then((c) =>
+        setCounts({
+          members:  c.members,
+          services: c.services,
+          products: c.products,
+          events:   c.events,
+          notices:  c.notices,
+          requests: c.requests,
+          history:  c.history,
+        }),
+      )
+      .catch(() => {});
+  }, [isElevated, homeMode]);
+
+  function toggleMode() {
+    const next = homeMode === 'dashboard' ? 'member' : 'dashboard';
+    sessionStorage.setItem('nis-home-view', next);
+    setHomeMode(next);
+  }
+
+  // ── Non-elevated: always member home, no toggle ────────────
+  if (!isElevated) {
+    return (
+      <AuthGuard>
+        <AppShell>
+          <HomeContent />
+        </AppShell>
+      </AuthGuard>
+    );
+  }
+
+  // ── Elevated, mode not yet resolved: skeleton ──────────────
+  if (homeMode === null) {
+    return (
+      <AuthGuard>
+        <AppShell>
+          <ElevatedLoadingSkeleton />
+        </AppShell>
+      </AuthGuard>
+    );
+  }
+
+  // ── Elevated, member view ──────────────────────────────────
+  if (homeMode === 'member') {
+    return (
+      <AuthGuard>
+        <AppShell>
+          {/* Toggle — same top position as dashboard view */}
+          <div className="max-w-2xl mx-auto flex justify-end mb-3">
+            <button
+              onClick={toggleMode}
+              className="rounded-full px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-slate-200"
+              style={{ background: '#F1F5F9', color: '#475569' }}
+            >
+              Dashboard view
+            </button>
+          </div>
+          <HomeContent />
+        </AppShell>
+      </AuthGuard>
+    );
+  }
+
+  // ── Elevated, dashboard view ───────────────────────────────
   return (
     <AuthGuard>
       <AppShell>
-        <HomeContent />
+        <div className="max-w-2xl mx-auto space-y-5">
+
+          {/* Toggle — same top position as member view */}
+          <div className="flex justify-end">
+            <button
+              onClick={toggleMode}
+              className="rounded-full px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-slate-200"
+              style={{ background: '#F1F5F9', color: '#475569' }}
+            >
+              Member view
+            </button>
+          </div>
+
+          {/* Hero greeting */}
+          <section
+            className="rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, #0B3D2E 0%, #008753 100%)' }}
+          >
+            <div
+              className="pointer-events-none absolute -top-16 -right-16 w-56 h-56 rounded-full opacity-10"
+              style={{ border: '40px solid #fff' }}
+              aria-hidden="true"
+            />
+            <p
+              className="text-xs font-bold uppercase tracking-widest mb-3"
+              style={{ color: '#6EE7B7' }}
+            >
+              Welcome back, {profile?.displayName}
+            </p>
+            <h1 className="text-2xl sm:text-3xl font-bold leading-tight">
+              {ROLE_LABELS[profile?.role ?? ''] ?? profile?.role} Dashboard
+            </h1>
+            <p className="mt-1.5 text-sm leading-relaxed" style={{ color: '#A7F3D0' }}>
+              Review pending content and manage the community.
+            </p>
+            {profile?.area && (
+              <p className="mt-0.5 text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                {profile.area}
+              </p>
+            )}
+          </section>
+
+          {/* Pending review counts */}
+          <div>
+            <p
+              className="text-xs font-bold uppercase tracking-widest mb-3"
+              style={{ color: 'var(--color-muted)' }}
+            >
+              Pending review
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {DASHBOARD_ITEMS.map(({ key, label, emoji }) => {
+                const count = counts[key];
+                const hasItems = count > 0;
+                return (
+                  <Link
+                    key={key}
+                    href="/admin"
+                    className="rounded-xl p-4 flex flex-col items-center gap-1.5 transition-all hover:shadow-md"
+                    style={{
+                      backgroundColor: hasItems ? '#FFFBEB' : '#FAFAFA',
+                      border: `1px solid ${hasItems ? '#FDE68A' : 'var(--color-border)'}`,
+                      boxShadow: 'var(--shadow-card)',
+                    }}
+                  >
+                    <span className="text-xl" aria-hidden="true">{emoji}</span>
+                    <span
+                      className="text-2xl font-bold tabular-nums leading-none"
+                      style={{ color: hasItems ? '#D97706' : 'var(--color-text)' }}
+                    >
+                      {count}
+                    </span>
+                    <span
+                      className="text-xs font-medium text-center"
+                      style={{ color: 'var(--color-muted)' }}
+                    >
+                      {label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+        </div>
       </AppShell>
     </AuthGuard>
   );
 }
 
+// ── Elevated loading skeleton ─────────────────────────────────
+// Shown while sessionStorage mode is being read (prevents flash of member home)
+function ElevatedLoadingSkeleton() {
+  return (
+    <div className="max-w-2xl mx-auto space-y-5">
+      {/* Toggle placeholder */}
+      <div className="flex justify-end">
+        <div className="rounded-full h-7 w-28 bg-slate-100 animate-pulse" />
+      </div>
+      {/* Hero skeleton */}
+      <div className="rounded-2xl h-36 bg-slate-200 animate-pulse" />
+      {/* Count grid skeleton */}
+      <div>
+        <div className="h-3 w-28 bg-slate-100 rounded mb-3 animate-pulse" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="rounded-xl h-24 bg-slate-100 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Member home (unchanged) ───────────────────────────────────
 function HomeContent() {
   const { profile } = useAuth();
 
