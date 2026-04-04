@@ -12,6 +12,7 @@ const ROLE_LABELS: Record<string, string> = {
   member:      "Community Member",
   provider:    "Service Provider",
   contributor: "Contributor",
+  moderator:   "Moderator",
   admin:       "Admin",
 };
 
@@ -247,7 +248,9 @@ function HomeContent() {
               className="w-1.5 h-1.5 rounded-full"
               style={{ background: isPending ? '#FCD34D' : '#34D399' }}
             />
-            {STATUS_LABELS[profile.status] ?? profile.status}
+            {profile.status === 'approved'
+              ? (ROLE_LABELS[profile.role] ?? profile.role)
+              : (STATUS_LABELS[profile.status] ?? profile.status)}
           </span>
         </div>
 
@@ -296,6 +299,57 @@ function HomeContent() {
               Service and product listings require admin approval.
             </p>
           </div>
+        </div>
+      )}
+
+      {/* ── Admin / Moderator dashboard shortcut ──────── */}
+      {(profile.role === 'admin' || profile.role === 'moderator' || profile.role === 'contributor') && (
+        <div data-animate style={{ '--anim-delay': '90ms' } as React.CSSProperties}>
+          <Link
+            href="/admin"
+            className="group flex items-start gap-4 rounded-2xl p-4 sm:p-5 transition-all"
+            style={{
+              backgroundColor: '#FEFDFB',
+              border: '1px solid var(--color-border)',
+              borderLeftWidth: '3px',
+              borderLeftColor: 'var(--color-primary)',
+              boxShadow: 'var(--shadow-card)',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0,135,83,0.45)';
+              (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'var(--shadow-raise)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--color-border)';
+              (e.currentTarget as HTMLAnchorElement).style.borderLeftColor = 'var(--color-primary)';
+              (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'var(--shadow-card)';
+            }}
+          >
+            <div
+              className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ background: 'var(--color-primary-surface)', color: 'var(--color-primary)' }}
+            >
+              <IconAdmin />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-sm" style={{ color: 'var(--color-text)' }}>
+                {profile.role === 'admin'
+                  ? 'Admin Dashboard'
+                  : profile.role === 'moderator'
+                  ? 'Moderator Dashboard'
+                  : 'Review Dashboard'}
+              </h3>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>
+                Review and approve pending content and members.
+              </p>
+            </div>
+            <span
+              className="flex-shrink-0 mt-0.5 text-lg font-light transition-transform group-hover:translate-x-0.5"
+              style={{ color: 'var(--color-border)' }}
+            >
+              →
+            </span>
+          </Link>
         </div>
       )}
 
@@ -512,57 +566,6 @@ function HomeContent() {
         🛡️ Moderated by community admins to keep this space safe and useful.
       </p>
 
-      {/* ── Admin ─────────────────────────────────────── */}
-      {profile.role === "admin" && (
-        <div
-          data-animate
-          style={{ '--anim-delay': '480ms' } as React.CSSProperties}
-        >
-          <p
-            className="text-xs font-bold uppercase tracking-widest mb-3"
-            style={{ color: 'var(--color-muted)' }}
-          >
-            Administration
-          </p>
-          <Link
-            href="/admin"
-            className="group flex items-start gap-4 rounded-2xl bg-white p-4 sm:p-5 transition-all"
-            style={{
-              border: '1px solid var(--color-border)',
-              boxShadow: 'var(--shadow-card)',
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0,135,83,0.35)';
-              (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'var(--shadow-raise)';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--color-border)';
-              (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'var(--shadow-card)';
-            }}
-          >
-            <div
-              className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: '#F3F4F6', color: '#374151' }}
-            >
-              <IconAdmin />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-sm" style={{ color: 'var(--color-text)' }}>
-                Admin Dashboard
-              </h3>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>
-                Review pending content and manage community members.
-              </p>
-            </div>
-            <span
-              className="flex-shrink-0 mt-0.5 text-lg font-light transition-transform group-hover:translate-x-0.5"
-              style={{ color: 'var(--color-border)' }}
-            >
-              →
-            </span>
-          </Link>
-        </div>
-      )}
 
     </div>
   );

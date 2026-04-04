@@ -25,7 +25,7 @@ const EMPTY_COUNTS: Record<AdminTab, number> = {
 };
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<AdminTab>('services');
+  const [activeTab, setActiveTab] = useState<AdminTab>('members');
   const [pendingCounts, setPendingCounts] = useState(EMPTY_COUNTS);
 
   // Fetch badge counts on mount and whenever the active tab changes.
