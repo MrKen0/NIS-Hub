@@ -99,14 +99,14 @@ function IconMyListings() {
 const NAV_CARDS = [
   {
     title: "Browse Services",
-    desc:  "Find tradespeople, tutors, drivers and more from the community.",
+    desc:  "Find trusted services offered by people in the community.",
     href:  "/services",
     Icon:  IconServices,
   },
   {
-    title: "Browse Products",
-    desc:  "Discover food, crafts, and goods available nearby.",
-    href:  "/products",
+    title: "Post a Service or Product",
+    desc:  "List your offering in the community marketplace. New listings can only be posted on Thursdays.",
+    href:  "/create",
     Icon:  IconProducts,
   },
   {
