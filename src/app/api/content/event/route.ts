@@ -47,6 +47,11 @@ export async function POST(req: Request) {
   const organiser   = typeof b.organiser   === 'string' ? b.organiser.trim()   : '';
   const contactLink = typeof b.contactLink === 'string' ? b.contactLink.trim() : '';
   const expiresAt   = typeof b.expiresAt   === 'string' ? b.expiresAt.trim()   : '';
+  const imageUrls   = Array.isArray(b.imageUrls)
+    ? (b.imageUrls as unknown[]).filter((u): u is string => typeof u === 'string' && u.trim() !== '')
+    : [];
+  const rawLinkUrl  = typeof b.linkUrl === 'string' ? b.linkUrl.trim() : '';
+  const linkUrl     = rawLinkUrl || null;
 
   if (!title)       return NextResponse.json({ error: 'title is required' },       { status: 400 });
   if (!description) return NextResponse.json({ error: 'description is required' }, { status: 400 });
@@ -58,9 +63,17 @@ export async function POST(req: Request) {
   if (title.length > 120)        return NextResponse.json({ error: 'title exceeds 120 characters' },       { status: 400 });
   if (description.length > 2000) return NextResponse.json({ error: 'description exceeds 2000 characters' }, { status: 400 });
   if (location.length > 200)     return NextResponse.json({ error: 'location exceeds 200 characters' },    { status: 400 });
+  if (linkUrl !== null && !/^https?:\/\/.+/.test(linkUrl)) {
+    return NextResponse.json({ error: 'Link must start with http:// or https://' }, { status: 400 });
+  }
 
   // ── 4. Content safety check ───────────────────────────────────────────────
-  const safety = await checkContentSafety(`${title} ${description}`);
+  let safety;
+  try {
+    safety = await checkContentSafety(`${title} ${description}`);
+  } catch {
+    return NextResponse.json({ error: 'Safety check unavailable' }, { status: 500 });
+  }
   if (safety.blocked) {
     return NextResponse.json({ code: 'CONTENT_BLOCKED' }, { status: 400 });
   }
@@ -76,6 +89,8 @@ export async function POST(req: Request) {
     organiser,
     contactLink,
     expiresAt,
+    imageUrls,
+    linkUrl,
     authorId:   uid,
     status:     'pending',
     rsvpCount:  0,

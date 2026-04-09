@@ -41,6 +41,7 @@ export default function CreateProductPage() {
         location: data.location,
         deliveryAvailable: data.deliveryAvailable,
         expiresAt: data.expiresAt,
+        linkUrl: data.linkUrl.trim() || null,
         authorId: user.uid,
       },
       data.images,

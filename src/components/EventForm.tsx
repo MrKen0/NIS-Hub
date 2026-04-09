@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import FormField from './FormField';
 import SelectField from './SelectField';
+import ImageUpload from './ImageUpload';
 import Button from './Button';
 import { EVENT_CATEGORIES } from '@/types/content';
 
@@ -16,6 +17,8 @@ export interface EventFormData {
   organiser: string;
   contactLink: string;
   expiresAt: string;
+  linkUrl: string;
+  images: File[];
 }
 
 interface EventFormProps {
@@ -36,6 +39,8 @@ export default function EventForm({ defaultValues, onSubmit }: EventFormProps) {
     organiser: defaultValues?.organiser ?? '',
     contactLink: defaultValues?.contactLink ?? '',
     expiresAt: '',
+    linkUrl: '',
+    images: [],
     ...defaultValues,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -67,6 +72,11 @@ export default function EventForm({ defaultValues, onSubmit }: EventFormProps) {
       setError('Please provide a contact link (WhatsApp, phone, or URL).');
       return;
     }
+    const linkUrl = formData.linkUrl.trim();
+    if (linkUrl && !/^https?:\/\/.+/.test(linkUrl)) {
+      setError('Link must start with http:// or https://');
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -96,6 +106,12 @@ export default function EventForm({ defaultValues, onSubmit }: EventFormProps) {
         textarea
         rows={4}
         required
+      />
+
+      <ImageUpload
+        images={formData.images}
+        onChange={(files) => setFormData(prev => ({ ...prev, images: files }))}
+        maxImages={6}
       />
 
       <div className="grid grid-cols-2 gap-4">
@@ -155,6 +171,13 @@ export default function EventForm({ defaultValues, onSubmit }: EventFormProps) {
         onChange={(v) => handleChange('expiresAt', v)}
         min={formData.date}
         required
+      />
+
+      <FormField
+        label="Event link"
+        value={formData.linkUrl}
+        onChange={(v) => handleChange('linkUrl', v)}
+        placeholder="https://..."
       />
 
       {error && <p className="text-sm text-red-600">{error}</p>}

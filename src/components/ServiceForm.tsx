@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import FormField from './FormField';
 import SelectField from './SelectField';
+import ImageUpload from './ImageUpload';
 import Button from './Button';
 import {
   SERVICE_CATEGORIES,
@@ -21,6 +22,8 @@ export interface ServiceFormData {
   phone: string;
   availabilityType: AvailabilityType;
   expiresAt: string;
+  linkUrl: string;
+  images: File[];
 }
 
 interface ServiceFormProps {
@@ -52,6 +55,8 @@ export default function ServiceForm({ defaultValues, onSubmit, submitLabel }: Se
     phone: defaultValues?.phone ?? '',
     availabilityType: 'flexible',
     expiresAt: defaultExpiry,
+    linkUrl: '',
+    images: [],
     ...defaultValues,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -93,6 +98,11 @@ export default function ServiceForm({ defaultValues, onSubmit, submitLabel }: Se
     }
     if (formData.serviceAreas.length === 0) {
       setError('Please select at least one service area.');
+      return;
+    }
+    const linkUrl = formData.linkUrl.trim();
+    if (linkUrl && !/^https?:\/\/.+/.test(linkUrl)) {
+      setError('Link must start with http:// or https://');
       return;
     }
 
@@ -142,6 +152,12 @@ export default function ServiceForm({ defaultValues, onSubmit, submitLabel }: Se
         textarea
         rows={4}
         required
+      />
+
+      <ImageUpload
+        images={formData.images}
+        onChange={(files) => setFormData(prev => ({ ...prev, images: files }))}
+        maxImages={6}
       />
 
       <div className="space-y-1">
@@ -205,6 +221,13 @@ export default function ServiceForm({ defaultValues, onSubmit, submitLabel }: Se
         onChange={(v) => handleChange('expiresAt', v)}
         min={new Date().toISOString().substring(0, 10)}
         required
+      />
+
+      <FormField
+        label="Website or booking link"
+        value={formData.linkUrl}
+        onChange={(v) => handleChange('linkUrl', v)}
+        placeholder="https://..."
       />
 
       {error && <p className="text-sm text-red-600">{error}</p>}

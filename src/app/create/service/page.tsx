@@ -29,18 +29,23 @@ export default function CreateServicePage() {
   const handleSubmit = async (data: ServiceFormData) => {
     if (!user) return;
 
-    await createServiceListing({
-      businessName: data.businessName,
-      category: data.category as ServiceCategory,
-      subcategory: data.subcategory,
-      description: data.description,
-      serviceAreas: data.serviceAreas,
-      whatsapp: data.whatsapp,
-      phone: data.phone,
-      availabilityType: data.availabilityType as AvailabilityType,
-      expiresAt: data.expiresAt,
-      authorId: user.uid,
-    });
+    await createServiceListing(
+      {
+        businessName: data.businessName,
+        category: data.category as ServiceCategory,
+        subcategory: data.subcategory,
+        description: data.description,
+        serviceAreas: data.serviceAreas,
+        whatsapp: data.whatsapp,
+        phone: data.phone,
+        availabilityType: data.availabilityType as AvailabilityType,
+        expiresAt: data.expiresAt,
+        linkUrl: data.linkUrl.trim() || null,
+        authorId: user.uid,
+      },
+      data.images,
+      user.uid,
+    );
 
     setSuccess(true);
   };

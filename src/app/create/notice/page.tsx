@@ -23,13 +23,18 @@ export default function CreateNoticePage() {
   const handleSubmit = async (data: NoticeFormData) => {
     if (!user) return;
 
-    await createNotice({
-      title: data.title,
-      body: data.body,
-      category: data.category as NoticeCategory,
-      expiresAt: data.expiresAt,
-      authorId: user.uid,
-    });
+    await createNotice(
+      {
+        title: data.title,
+        body: data.body,
+        category: data.category as NoticeCategory,
+        expiresAt: data.expiresAt,
+        linkUrl: data.linkUrl.trim() || null,
+        authorId: user.uid,
+      },
+      data.images,
+      user.uid,
+    );
 
     setSuccess(true);
   };

@@ -54,18 +54,28 @@ export async function POST(req: Request) {
   const imageUrls         = Array.isArray(b.imageUrls)
     ? (b.imageUrls as unknown[]).filter((u): u is string => typeof u === 'string' && u.trim() !== '')
     : [];
+  const rawLinkUrl        = typeof b.linkUrl === 'string' ? b.linkUrl.trim() : '';
+  const linkUrl           = rawLinkUrl || null;
 
   if (!title)       return NextResponse.json({ error: 'title is required' },       { status: 400 });
   if (!description) return NextResponse.json({ error: 'description is required' }, { status: 400 });
   if (!category)    return NextResponse.json({ error: 'category is required' },    { status: 400 });
   if (!sellerName)  return NextResponse.json({ error: 'sellerName is required' },  { status: 400 });
   if (!expiresAt)   return NextResponse.json({ error: 'expiresAt is required' },   { status: 400 });
-  if (imageUrls.length === 0) return NextResponse.json({ error: 'at least one imageUrl is required' }, { status: 400 });
+  if (imageUrls.length === 0) return NextResponse.json({ error: 'Please add at least one product photo.' }, { status: 400 });
   if (title.length > 120)        return NextResponse.json({ error: 'title exceeds 120 characters' },        { status: 400 });
   if (description.length > 2000) return NextResponse.json({ error: 'description exceeds 2000 characters' }, { status: 400 });
+  if (linkUrl !== null && !/^https?:\/\/.+/.test(linkUrl)) {
+    return NextResponse.json({ error: 'Link must start with http:// or https://' }, { status: 400 });
+  }
 
   // ── 4. Content safety check (always re-run — prevents precheck bypass) ───
-  const safety = await checkContentSafety(`${title} ${description}`);
+  let safety;
+  try {
+    safety = await checkContentSafety(`${title} ${description}`);
+  } catch {
+    return NextResponse.json({ error: 'Safety check unavailable' }, { status: 500 });
+  }
   if (safety.blocked) {
     return NextResponse.json({ code: 'CONTENT_BLOCKED' }, { status: 400 });
   }
@@ -83,6 +93,7 @@ export async function POST(req: Request) {
     location,
     deliveryAvailable,
     expiresAt,
+    linkUrl,
     authorId:    uid,
     status:      'pending',
     surfacedAt:  FieldValue.serverTimestamp(),

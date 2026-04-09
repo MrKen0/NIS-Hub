@@ -492,3 +492,80 @@ All existing tests must pass. The moderation tests run as admin (`ADMIN_EMAIL`) 
 - AdminNoticePanel uses one-time fetch (not real-time); list refreshes after each bulk action
 - Home strips show up to 5 items each, ordered by `expiresAt` ascending (soonest first)
 - Home strips use client-side fetch on mount; no real-time subscription
+
+---
+
+## Phase 5 — Fix + URL Fields + Image Expansion
+
+### A. Product posting error surfacing
+
+- [ ] Submit a product listing with all required fields but no images → error should read "Please add at least one product photo." (not generic)
+- [ ] Intentionally break `checkContentSafety` (e.g. rename `contentPolicies` collection in emulator) → product/service/event/notice submissions each show a generic "Something went wrong" message without crashing or exposing internals
+- [ ] Submit with an expired or missing auth token → error reads "Authentication error — please sign in again."
+- [ ] Submit a product listing that triggers CONTENT_BLOCKED → "Your content could not be posted. Please review and try again." still shows
+
+### B. linkUrl field (all 4 content types)
+
+- [ ] Product: leave linkUrl blank → submits and Firestore `linkUrl` field is `null`
+- [ ] Product: enter `https://example.com` → submits, `linkUrl` stored correctly
+- [ ] Product: enter `ftp://example.com` → inline error "Link must start with http:// or https://"
+- [ ] Product: enter `http://example.com` → accepted
+- [ ] Repeat blank / valid / invalid for service, event, and notice
+- [ ] Label check: Product = "Website or product link", Service = "Website or booking link", Event = "Event link", Notice = "Related link"
+- [ ] Server-side: API rejects a crafted request with `linkUrl: "not-a-url"` → returns 400 with message "Link must start with http:// or https://"
+
+### C. Image upload — events and notices
+
+- [ ] Post an event with 1 image → image uploads to `content/{uid}/events/`, `events/{id}.imageUrls` has one URL
+- [ ] Post an event with 6 images → all 6 URLs stored in Firestore
+- [ ] Post an event with 7 images → ImageUpload component prevents the 7th from being added
+- [ ] Post an event with no images → succeeds, `imageUrls` is `[]`
+- [ ] Post a notice with 1 image → image uploads to `content/{uid}/notices/`
+- [ ] Post a notice with no images → succeeds
+- [ ] Upload an image >5 MB in the event form → inline error "Each image must be under 5MB."
+- [ ] Upload a non-image file in the event form → inline error "Only JPEG, PNG, and WebP images are allowed."
+
+### D. Products: max images raised to 6
+
+- [ ] Product form shows "Photos (up to 6)" in the ImageUpload area
+- [ ] Add 6 images to a product → "+ Add photo" button disappears
+- [ ] Submit product with 6 images → all 6 URLs stored in `productListings/{id}.imageUrls`
+
+### TypeScript + Lint
+
+```bash
+npx tsc --noEmit       # must pass with zero errors
+npx eslint src         # zero new warnings in touched files
+```
+
+### Regression
+
+```bash
+node scripts/seed-test-data.mjs
+npx playwright test
+```
+
+All pre-existing tests must continue to pass.
+
+### MVP limitations retained
+
+- Image uploads for products require at least one photo (server-enforced)
+- Images for events and notices are optional
+- `linkUrl` is optional for all content types and stored as `null` when blank
+- Services do not support image upload (URL field only)
+
+---
+
+## Phase 5B — Service image upload
+
+- [ ] Service form shows "Photos (up to 6)"
+- [ ] Service can be submitted with zero images → succeeds, status `pending`
+- [ ] Service can be submitted with 1 image → `serviceListings/{id}.imageUrls` has one URL
+- [ ] Service can be submitted with up to 6 images → all 6 URLs stored
+- [ ] Adding a 7th image is blocked in the ImageUpload component UI
+- [ ] Oversized image (>5 MB) shows inline error "Each image must be under 5MB."
+- [ ] Non-image file shows inline error "Only JPEG, PNG, and WebP images are allowed."
+- [ ] Moderation status remains `pending` with and without images
+- [ ] Thursday rule still applies (non-elevated users cannot post on other days)
+- [ ] Valid linkUrl still saves correctly
+- [ ] Blank linkUrl saves as `null` in Firestore

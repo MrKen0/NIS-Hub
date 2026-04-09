@@ -10,6 +10,8 @@ import {
   where,
 } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
+import { uploadContentImage } from '@/lib/firebase/uploadContentImage';
+import { parseApiError } from '@/lib/apiError';
 import { mapDoc } from '@/lib/firebase/mapDoc';
 import type { ServiceListing } from '@/types/content';
 
@@ -24,11 +26,26 @@ type UpdateServiceListingData = Partial<
   Omit<ServiceListing, 'id' | 'authorId' | 'createdAt' | 'status' | 'surfacedAt' | 'lastRepublishedAt'>
 >;
 
+// ---------- Storage helpers ----------
+
+export async function uploadServiceImage(uid: string, file: File): Promise<string> {
+  return uploadContentImage(uid, 'services', file);
+}
+
 // ---------- Create ----------
 
-export async function createServiceListing(data: CreateServiceListingData): Promise<string> {
+export async function createServiceListing(
+  data: CreateServiceListingData,
+  images: File[],
+  uid: string,
+): Promise<string> {
   // Strip server-set fields — authorId, surfacedAt, and safety fields are set server-side
   const { authorId: _a, flagged: _f, flagReason: _fr, ...bodyData } = data;
+
+  // Upload images before the API call (images are optional for services)
+  const imageUrls = images.length > 0
+    ? await Promise.all(images.map((file) => uploadServiceImage(uid, file)))
+    : [];
 
   const token = await auth.currentUser?.getIdToken();
   const res = await fetch('/api/content/service', {
@@ -37,7 +54,7 @@ export async function createServiceListing(data: CreateServiceListingData): Prom
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token ?? ''}`,
     },
-    body: JSON.stringify(bodyData),
+    body: JSON.stringify({ ...bodyData, imageUrls }),
   });
 
   if (!res.ok) {
@@ -45,7 +62,7 @@ export async function createServiceListing(data: CreateServiceListingData): Prom
     if (body.code === 'CONTENT_BLOCKED') {
       throw new Error('Your content could not be posted. Please review and try again.');
     }
-    throw new Error('Failed to post service listing. Please try again.');
+    throw new Error(parseApiError(res.status, body, 'Failed to post service listing. Please try again.'));
   }
 
   const { id } = await res.json() as { id: string };

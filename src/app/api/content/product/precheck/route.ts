@@ -50,7 +50,12 @@ export async function POST(req: Request) {
   if (description.length > 2000) return NextResponse.json({ error: 'description exceeds 2000 characters' }, { status: 400 });
 
   // ── 4. Content safety check ───────────────────────────────────────────────
-  const safety = await checkContentSafety(`${title} ${description}`);
+  let safety;
+  try {
+    safety = await checkContentSafety(`${title} ${description}`);
+  } catch {
+    return NextResponse.json({ error: 'Safety check unavailable' }, { status: 500 });
+  }
   if (safety.blocked) {
     return NextResponse.json({ code: 'CONTENT_BLOCKED' }, { status: 400 });
   }

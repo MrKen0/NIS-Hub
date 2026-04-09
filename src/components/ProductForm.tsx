@@ -19,6 +19,7 @@ export interface ProductFormData {
   deliveryAvailable: boolean;
   expiresAt: string;
   images: File[];
+  linkUrl: string;
 }
 
 interface ProductFormProps {
@@ -53,6 +54,7 @@ export default function ProductForm({
     deliveryAvailable: false,
     expiresAt: defaultExpiry,
     images: [],
+    linkUrl: '',
     ...defaultValues,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -76,6 +78,11 @@ export default function ProductForm({
     }
     if (!formData.whatsapp.trim()) {
       setError('WhatsApp number is required.');
+      return;
+    }
+    const linkUrl = formData.linkUrl.trim();
+    if (linkUrl && !/^https?:\/\/.+/.test(linkUrl)) {
+      setError('Link must start with http:// or https://');
       return;
     }
 
@@ -122,6 +129,7 @@ export default function ProductForm({
         onChange={(files) => setFormData(prev => ({ ...prev, images: files }))}
         initialUrls={initialImageUrls}
         onInitialUrlsChange={onInitialImageUrlsChange}
+        maxImages={6}
       />
 
       <div className="space-y-2">
@@ -183,6 +191,13 @@ export default function ProductForm({
         onChange={(v) => handleChange('expiresAt', v)}
         min={new Date().toISOString().substring(0, 10)}
         required
+      />
+
+      <FormField
+        label="Website or product link"
+        value={formData.linkUrl}
+        onChange={(v) => handleChange('linkUrl', v)}
+        placeholder="https://..."
       />
 
       {error && <p className="text-sm text-red-600">{error}</p>}

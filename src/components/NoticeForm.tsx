@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import FormField from './FormField';
 import SelectField from './SelectField';
+import ImageUpload from './ImageUpload';
 import Button from './Button';
 import { NOTICE_CATEGORIES } from '@/types/content';
 
@@ -11,6 +12,8 @@ export interface NoticeFormData {
   body: string;
   category: string;
   expiresAt: string;
+  linkUrl: string;
+  images: File[];
 }
 
 interface NoticeFormProps {
@@ -26,6 +29,8 @@ export default function NoticeForm({ defaultValues, onSubmit }: NoticeFormProps)
     body: '',
     category: 'General',
     expiresAt: defaultExpiry,
+    linkUrl: '',
+    images: [],
     ...defaultValues,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -41,6 +46,11 @@ export default function NoticeForm({ defaultValues, onSubmit }: NoticeFormProps)
 
     if (!formData.title.trim() || !formData.body.trim()) {
       setError('Title and body are required.');
+      return;
+    }
+    const linkUrl = formData.linkUrl.trim();
+    if (linkUrl && !/^https?:\/\/.+/.test(linkUrl)) {
+      setError('Link must start with http:// or https://');
       return;
     }
 
@@ -74,6 +84,12 @@ export default function NoticeForm({ defaultValues, onSubmit }: NoticeFormProps)
         required
       />
 
+      <ImageUpload
+        images={formData.images}
+        onChange={(files) => setFormData(prev => ({ ...prev, images: files }))}
+        maxImages={6}
+      />
+
       <SelectField
         label="Category"
         value={formData.category}
@@ -89,6 +105,13 @@ export default function NoticeForm({ defaultValues, onSubmit }: NoticeFormProps)
         onChange={(v) => handleChange('expiresAt', v)}
         min={new Date().toISOString().substring(0, 10)}
         required
+      />
+
+      <FormField
+        label="Related link"
+        value={formData.linkUrl}
+        onChange={(v) => handleChange('linkUrl', v)}
+        placeholder="https://..."
       />
 
       {error && <p className="text-sm text-red-600">{error}</p>}

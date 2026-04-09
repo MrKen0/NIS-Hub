@@ -18,18 +18,23 @@ export default function CreateEventPage() {
   const handleSubmit = async (data: EventFormData) => {
     if (!user) return;
 
-    await createEvent({
-      title: data.title,
-      description: data.description,
-      date: data.date,
-      time: data.time,
-      location: data.location,
-      category: data.category as EventCategory,
-      organiser: data.organiser,
-      contactLink: data.contactLink,
-      expiresAt: data.expiresAt,
-      authorId: user.uid,
-    });
+    await createEvent(
+      {
+        title: data.title,
+        description: data.description,
+        date: data.date,
+        time: data.time,
+        location: data.location,
+        category: data.category as EventCategory,
+        organiser: data.organiser,
+        contactLink: data.contactLink,
+        expiresAt: data.expiresAt,
+        linkUrl: data.linkUrl.trim() || null,
+        authorId: user.uid,
+      },
+      data.images,
+      user.uid,
+    );
 
     setSuccess(true);
   };

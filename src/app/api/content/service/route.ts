@@ -49,6 +49,11 @@ export async function POST(req: Request) {
   const serviceAreas      = Array.isArray(b.serviceAreas)
     ? (b.serviceAreas as unknown[]).filter((a): a is string => typeof a === 'string' && a.trim() !== '').map(a => a.trim())
     : [];
+  const rawLinkUrl        = typeof b.linkUrl === 'string' ? b.linkUrl.trim() : '';
+  const linkUrl           = rawLinkUrl || null;
+  const imageUrls         = Array.isArray(b.imageUrls)
+    ? (b.imageUrls as unknown[]).filter((u): u is string => typeof u === 'string' && u.trim() !== '').slice(0, 6)
+    : [];
 
   if (!businessName)     return NextResponse.json({ error: 'businessName is required' },     { status: 400 });
   if (!category)         return NextResponse.json({ error: 'category is required' },         { status: 400 });
@@ -58,9 +63,17 @@ export async function POST(req: Request) {
   if (serviceAreas.length === 0) return NextResponse.json({ error: 'at least one serviceArea is required' }, { status: 400 });
   if (businessName.length > 80)  return NextResponse.json({ error: 'businessName exceeds 80 characters' },  { status: 400 });
   if (description.length > 2000) return NextResponse.json({ error: 'description exceeds 2000 characters' }, { status: 400 });
+  if (linkUrl !== null && !/^https?:\/\/.+/.test(linkUrl)) {
+    return NextResponse.json({ error: 'Link must start with http:// or https://' }, { status: 400 });
+  }
 
   // ── 4. Content safety check ───────────────────────────────────────────────
-  const safety = await checkContentSafety(`${businessName} ${description}`);
+  let safety;
+  try {
+    safety = await checkContentSafety(`${businessName} ${description}`);
+  } catch {
+    return NextResponse.json({ error: 'Safety check unavailable' }, { status: 500 });
+  }
   if (safety.blocked) {
     return NextResponse.json({ code: 'CONTENT_BLOCKED' }, { status: 400 });
   }
@@ -76,6 +89,8 @@ export async function POST(req: Request) {
     phone,
     availabilityType,
     expiresAt,
+    imageUrls,
+    linkUrl,
     authorId:    uid,
     status:      'pending',
     surfacedAt:  FieldValue.serverTimestamp(),

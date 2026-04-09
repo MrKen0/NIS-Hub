@@ -39,6 +39,8 @@ export interface ProductListing {
   location: string;
   deliveryAvailable: boolean;
   expiresAt: string;
+  /** Optional external URL (e.g. product page, shop link). */
+  linkUrl?: string | null;
   status: ContentStatus;
   authorId: string;
   createdAt: string;
@@ -86,6 +88,10 @@ export interface ServiceListing {
   phone: string;
   availabilityType: AvailabilityType;
   expiresAt: string;
+  /** Optional external URL (e.g. booking page, website). */
+  linkUrl?: string | null;
+  /** Optional service images uploaded to Firebase Storage. */
+  imageUrls?: string[] | null;
   status: ContentStatus;
   authorId: string;
   createdAt: string;
@@ -188,6 +194,10 @@ export interface CommunityEvent {
   organiser: string;
   contactLink: string;
   expiresAt: string;
+  /** Optional external URL (e.g. event page, registration link). */
+  linkUrl?: string | null;
+  /** Optional event images uploaded to Firebase Storage. */
+  imageUrls?: string[] | null;
   status: ContentStatus;
   authorId: string;
   createdAt: string;
@@ -217,6 +227,10 @@ export interface CommunityNotice {
   body: string;
   category: NoticeCategory;
   expiresAt: string;
+  /** Optional external URL (e.g. related announcement or article). */
+  linkUrl?: string | null;
+  /** Optional notice images uploaded to Firebase Storage. */
+  imageUrls?: string[] | null;
   status: ContentStatus;
   authorId: string;
   createdAt: string;

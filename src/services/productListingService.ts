@@ -9,8 +9,9 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { auth, db, storage } from '@/lib/firebase/client';
+import { auth, db } from '@/lib/firebase/client';
+import { uploadContentImage } from '@/lib/firebase/uploadContentImage';
+import { parseApiError } from '@/lib/apiError';
 import { mapDoc } from '@/lib/firebase/mapDoc';
 import type { ProductListing } from '@/types/content';
 
@@ -27,12 +28,7 @@ type UpdateProductListingData = Partial<
 // ---------- Storage helpers ----------
 
 export async function uploadProductImage(uid: string, file: File): Promise<string> {
-  const timestamp = Date.now();
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const path = `content/${uid}/products/${timestamp}_${safeName}`;
-  const storageRef = ref(storage, path);
-  await uploadBytes(storageRef, file);
-  return getDownloadURL(storageRef);
+  return uploadContentImage(uid, 'products', file);
 }
 
 // ---------- Create ----------
@@ -60,7 +56,7 @@ export async function createProductListing(
     if (precheckBody.code === 'CONTENT_BLOCKED') {
       throw new Error('Your content could not be posted. Please review and try again.');
     }
-    throw new Error('Failed to post product listing. Please try again.');
+    throw new Error(parseApiError(precheckRes.status, precheckBody, 'Failed to post product listing. Please try again.'));
   }
 
   // ── Step 2: upload images (only reached if precheck passed) ──────────────
@@ -83,7 +79,7 @@ export async function createProductListing(
     if (createBody.code === 'CONTENT_BLOCKED') {
       throw new Error('Your content could not be posted. Please review and try again.');
     }
-    throw new Error('Failed to post product listing. Please try again.');
+    throw new Error(parseApiError(createRes.status, createBody, 'Failed to post product listing. Please try again.'));
   }
 
   const { id } = await createRes.json() as { id: string };
