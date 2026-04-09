@@ -27,7 +27,15 @@ export default function CreateProductPage() {
   const postingBlocked = !isThursdayUK() && !isElevated;
 
   const handleSubmit = async (data: ProductFormData) => {
-    if (!user) return;
+    if (!user) {
+      throw new Error('You need to be signed in to post.');
+    }
+
+    const token = await user.getIdToken();
+
+    if (!token) {
+      throw new Error('Authentication error — please sign in again.');
+    }
 
     await createProductListing(
       {
@@ -45,7 +53,8 @@ export default function CreateProductPage() {
         authorId: user.uid,
       },
       data.images,
-      user.uid
+      user.uid,
+      token,
     );
 
     setSuccess(true);

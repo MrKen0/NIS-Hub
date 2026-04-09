@@ -1,4 +1,4 @@
-import { auth } from '@/lib/firebase/client';
+// auth.currentUser is NOT used here — token is passed in from the page layer
 import { uploadContentImage } from '@/lib/firebase/uploadContentImage';
 import { parseApiError } from '@/lib/apiError';
 import type { CommunityEvent } from '@/types/content';
@@ -13,7 +13,12 @@ export async function createEvent(
   data: CreateEventData,
   images: File[],
   uid: string,
+  token: string,
 ): Promise<string> {
+  if (!token) {
+    throw new Error('Authentication error — please sign in again.');
+  }
+
   // Strip server-set fields — authorId, rsvpCount, and safety fields are set server-side
   const { authorId: _a, flagged: _f, flagReason: _fr, ...bodyData } = data;
 
@@ -22,7 +27,6 @@ export async function createEvent(
     ? await Promise.all(images.map((file) => uploadEventImage(uid, file)))
     : [];
 
-  const token = await auth.currentUser?.getIdToken();
   const res = await fetch('/api/content/event', {
     method: 'POST',
     headers: {

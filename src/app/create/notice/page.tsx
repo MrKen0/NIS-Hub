@@ -21,7 +21,15 @@ export default function CreateNoticePage() {
     profile?.role === 'admin';
 
   const handleSubmit = async (data: NoticeFormData) => {
-    if (!user) return;
+    if (!user) {
+      throw new Error('You need to be signed in to post.');
+    }
+
+    const token = await user.getIdToken();
+
+    if (!token) {
+      throw new Error('Authentication error — please sign in again.');
+    }
 
     await createNotice(
       {
@@ -34,6 +42,7 @@ export default function CreateNoticePage() {
       },
       data.images,
       user.uid,
+      token,
     );
 
     setSuccess(true);

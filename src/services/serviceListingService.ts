@@ -9,7 +9,7 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase/client';
+import { db } from '@/lib/firebase/client';
 import { uploadContentImage } from '@/lib/firebase/uploadContentImage';
 import { parseApiError } from '@/lib/apiError';
 import { mapDoc } from '@/lib/firebase/mapDoc';
@@ -38,7 +38,12 @@ export async function createServiceListing(
   data: CreateServiceListingData,
   images: File[],
   uid: string,
+  token: string,
 ): Promise<string> {
+  if (!token) {
+    throw new Error('Authentication error — please sign in again.');
+  }
+
   // Strip server-set fields — authorId, surfacedAt, and safety fields are set server-side
   const { authorId: _a, flagged: _f, flagReason: _fr, ...bodyData } = data;
 
@@ -47,7 +52,6 @@ export async function createServiceListing(
     ? await Promise.all(images.map((file) => uploadServiceImage(uid, file)))
     : [];
 
-  const token = await auth.currentUser?.getIdToken();
   const res = await fetch('/api/content/service', {
     method: 'POST',
     headers: {

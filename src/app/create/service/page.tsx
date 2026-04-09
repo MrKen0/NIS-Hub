@@ -27,7 +27,15 @@ export default function CreateServicePage() {
   const postingBlocked = !isThursdayUK() && !isElevated;
 
   const handleSubmit = async (data: ServiceFormData) => {
-    if (!user) return;
+    if (!user) {
+      throw new Error('You need to be signed in to post.');
+    }
+
+    const token = await user.getIdToken();
+
+    if (!token) {
+      throw new Error('Authentication error — please sign in again.');
+    }
 
     await createServiceListing(
       {
@@ -45,6 +53,7 @@ export default function CreateServicePage() {
       },
       data.images,
       user.uid,
+      token,
     );
 
     setSuccess(true);

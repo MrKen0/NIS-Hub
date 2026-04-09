@@ -9,7 +9,7 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase/client';
+import { db } from '@/lib/firebase/client';
 import { uploadContentImage } from '@/lib/firebase/uploadContentImage';
 import { parseApiError } from '@/lib/apiError';
 import { mapDoc } from '@/lib/firebase/mapDoc';
@@ -37,8 +37,11 @@ export async function createProductListing(
   data: CreateProductListingData,
   images: File[],
   uid: string,
+  token: string,
 ): Promise<string> {
-  const token = await auth.currentUser?.getIdToken();
+  if (!token) {
+    throw new Error('Authentication error — please sign in again.');
+  }
 
   // ── Step 1: precheck before any image upload ─────────────────────────────
   // Prevents orphaned Storage files when content is blocked.
