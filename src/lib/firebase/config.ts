@@ -23,8 +23,11 @@ export const firebaseConfig = {
 
 // --- Server-side config (only used in API routes and server components) ---
 export const firebaseAdminConfig = {
-  projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
-  clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-  // The private key comes as a string with literal "\n" — we convert to real newlines
-  privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+  // .trim() guards against trailing newlines that creep in when env vars are set
+  // via `echo "value" | vercel env add` (echo appends \n) or copy-paste in dashboards.
+  projectId:   process.env.FIREBASE_ADMIN_PROJECT_ID?.trim(),
+  clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL?.trim(),
+  // The private key comes as a string with literal "\n" — we convert to real newlines.
+  // We do NOT trim the private key: leading/trailing newlines are part of PEM format.
+  privateKey:  process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n"),
 };
