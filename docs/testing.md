@@ -569,3 +569,95 @@ All pre-existing tests must continue to pass.
 - [ ] Thursday rule still applies (non-elevated users cannot post on other days)
 - [ ] Valid linkUrl still saves correctly
 - [ ] Blank linkUrl saves as `null` in Firestore
+
+---
+
+## Phase 6 — Listing Presentation
+
+### A. Image carousel (ImageCarousel component)
+
+- [ ] `ImageCarousel` returns nothing (no DOM node) when `imageUrls` is empty
+- [ ] Single image: rendered, no dot indicators shown
+- [ ] Two or more images: dot indicators appear at bottom of carousel
+- [ ] Swiping left on mobile scrolls to next image (scroll-snap)
+- [ ] Scrollbar is hidden on all browsers (Chrome, Firefox, Safari)
+
+### B. Services browse page (`/services`)
+
+- [ ] Featured service card with photos: top image (`h-32`) appears above card content
+- [ ] Featured service card without photos: no empty placeholder — card shows text-only as before
+- [ ] Featured service card with `linkUrl` set: "Has website" chip appears below description
+- [ ] Featured service card without `linkUrl`: no chip shown
+- [ ] Regular service list card with photos: `w-16 h-16` thumbnail shown on left
+- [ ] Regular service list card without photos: no empty square — layout is text-only as before
+- [ ] Regular service list card with `linkUrl` set: "Website" chip appears in the area row
+- [ ] Regular service list card without `linkUrl`: no chip shown
+- [ ] Clicking any service card (featured or list) navigates to `/services/{id}`
+
+### C. Services detail page (`/services/{id}`)
+
+- [ ] Service with photos: `ImageCarousel` at `h-64` appears between header and body
+- [ ] Service without photos: no image section rendered
+- [ ] Service with `linkUrl`: "Visit website ↗" button appears below WhatsApp/phone CTAs; opens in new tab with `rel="noopener noreferrer"`
+- [ ] Service without `linkUrl`: no "Visit website" button
+
+### D. Products browse page (`/products`)
+
+- [ ] Featured product card with multiple images: `ImageCarousel` at `h-36`; dot indicators visible; swipeable
+- [ ] Featured product card with single image: carousel renders, no dots
+- [ ] Featured product card with no images: gradient fallback panel shown (no carousel)
+- [ ] Grid product card: first image only shown (no carousel); behaviour unchanged
+
+### E. Products detail page (`/products/{id}`)
+
+- [ ] Product with images: `ImageCarousel` at `h-64`; swipeable; dots appear for multiple images
+- [ ] Product with no images: `📦` no-photo fallback shown
+- [ ] Product with `linkUrl`: "Shop link ↗" button appears below WhatsApp CTA; opens in new tab with `rel="noopener noreferrer"`
+- [ ] Product without `linkUrl`: no "Shop link" button
+
+### F. Events detail page (`/events/{id}`)
+
+- [ ] Event with images: `ImageCarousel` at `h-64` appears between header and info grid
+- [ ] Event without images: no image section rendered
+- [ ] Event with `linkUrl`: "Event link ↗" button appears in CTA area; opens in new tab with `rel="noopener noreferrer"`
+- [ ] Event without `linkUrl`: no "Event link" button
+- [ ] Past event: "Event link ↗" still visible if `linkUrl` set (RSVP button hidden, link button shown)
+
+### G. Notices detail page (`/notices/{id}`)
+
+- [ ] Notice with images: `ImageCarousel` at `h-64` appears between header and body
+- [ ] Notice without images: no image section rendered
+- [ ] Notice with `linkUrl`: "Related link ↗" button appears below body text; opens in new tab with `rel="noopener noreferrer"`
+- [ ] Notice without `linkUrl`: no "Related link" button
+
+### H. My Listings — approved click-through
+
+- [ ] Approved service card: "View listing →" link appears alongside Edit and Boost buttons
+- [ ] Approved service "View listing →" navigates to `/services/{id}` (the correct live listing)
+- [ ] Approved product card: "View listing →" link appears alongside Edit and Boost buttons
+- [ ] Approved product "View listing →" navigates to `/products/{id}`
+- [ ] Pending, rejected, paused, archived cards: no "View listing →" link shown
+- [ ] Edit listing and Boost listing controls are unchanged and still functional
+
+### TypeScript + Lint
+
+```bash
+npx tsc --noEmit       # must pass with zero errors
+npx eslint src         # zero new warnings in touched files
+```
+
+### Regression
+
+```bash
+node scripts/seed-test-data.mjs
+npx playwright test
+```
+
+All pre-existing tests must continue to pass.
+
+### MVP limitations retained
+
+- All `linkUrl` buttons use `target="_blank"` + `rel="noopener noreferrer"` (security hardened)
+- `ImageCarousel` dot indicators are static (no active-slide tracking) — sufficient for mobile swipe UX
+- Browse grid cards (products) remain first-image-only for scan speed; carousel only on detail and featured slots
+- Service regular list cards show thumbnail only when photos exist; no forced empty placeholder

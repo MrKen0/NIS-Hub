@@ -7,6 +7,7 @@ import AppShell from '@/components/AppShell';
 import StateMessage from '@/components/StateMessage';
 import { getEventById } from '@/services/browseService';
 import type { CommunityEvent } from '@/types/content';
+import ImageCarousel from '@/components/ImageCarousel';
 
 function formatDateLong(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', {
@@ -88,6 +89,15 @@ export default function EventDetailPage() {
                 </p>
               </div>
 
+              {/* Image carousel — only rendered when the event has photos */}
+              {(event.imageUrls?.length ?? 0) > 0 && (
+                <ImageCarousel
+                  imageUrls={event.imageUrls!}
+                  alt={event.title}
+                  heightClass="h-64"
+                />
+              )}
+
               <div className="p-6 space-y-5">
                 {/* Info grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
@@ -118,18 +128,30 @@ export default function EventDetailPage() {
                 </div>
 
                 {/* CTA */}
-                {!isPast && contactUrl && (
-                  <div className="pt-4 border-t">
-                    <a
-                      href={contactUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center w-full rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700 transition-colors min-h-[44px]"
-                    >
-                      RSVP / Contact Organiser
-                    </a>
+                {(!isPast && contactUrl) || event.linkUrl ? (
+                  <div className="pt-4 border-t space-y-2">
+                    {!isPast && contactUrl && (
+                      <a
+                        href={contactUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center w-full rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700 transition-colors min-h-[44px]"
+                      >
+                        RSVP / Contact Organiser
+                      </a>
+                    )}
+                    {event.linkUrl && (
+                      <a
+                        href={event.linkUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center w-full rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors min-h-[44px]"
+                      >
+                        Event link ↗
+                      </a>
+                    )}
                   </div>
-                )}
+                ) : null}
 
                 {isPast && (
                   <div className="rounded-lg bg-slate-100 p-4 text-center">

@@ -7,6 +7,7 @@ import AppShell from '@/components/AppShell';
 import StateMessage from '@/components/StateMessage';
 import { getNoticeById } from '@/services/browseService';
 import type { CommunityNotice } from '@/types/content';
+import ImageCarousel from '@/components/ImageCarousel';
 
 function formatDateLong(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', {
@@ -86,6 +87,15 @@ export default function NoticeDetailPage() {
                 </p>
               </div>
 
+              {/* Image carousel — only rendered when the notice has photos */}
+              {(notice.imageUrls?.length ?? 0) > 0 && (
+                <ImageCarousel
+                  imageUrls={notice.imageUrls!}
+                  alt={notice.title}
+                  heightClass="h-64"
+                />
+              )}
+
               <div className="p-6 space-y-5">
                 {isExpired && (
                   <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700 font-medium">
@@ -97,6 +107,20 @@ export default function NoticeDetailPage() {
                 <div>
                   <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">{notice.body}</p>
                 </div>
+
+                {/* Related link */}
+                {notice.linkUrl && (
+                  <div className="pt-2">
+                    <a
+                      href={notice.linkUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center w-full rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors min-h-[44px]"
+                    >
+                      Related link ↗
+                    </a>
+                  </div>
+                )}
 
                 {/* Meta */}
                 <div className="text-xs text-slate-400 pt-4 border-t">

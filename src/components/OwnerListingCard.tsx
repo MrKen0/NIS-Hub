@@ -77,6 +77,9 @@ export default function OwnerListingCard({
   boosting = false,
 }: OwnerListingCardProps) {
   const editHref = `/my-listings/${type === 'service' ? 'services' : 'products'}/${id}/edit`;
+  const liveHref = status === 'approved'
+    ? `/${type === 'service' ? 'services' : 'products'}/${id}`
+    : null;
   const canBoost = status === 'approved';
   const isArchived = status === 'archived';
   const boostHint = BOOST_BLOCKED_HINT[status];
@@ -152,6 +155,17 @@ export default function OwnerListingCard({
             >
               Edit listing
             </Link>
+
+            {/* View live listing — only for approved items */}
+            {liveHref && (
+              <Link
+                href={liveHref}
+                className="inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-slate-50 min-h-[36px]"
+                style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}
+              >
+                View listing →
+              </Link>
+            )}
 
             {/* Boost button — only visible for approved */}
             {canBoost ? (

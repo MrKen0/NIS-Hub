@@ -7,6 +7,7 @@ import AppShell from '@/components/AppShell';
 import StateMessage from '@/components/StateMessage';
 import { getProductById } from '@/services/browseService';
 import type { ProductListing } from '@/types/content';
+import ImageCarousel from '@/components/ImageCarousel';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -63,20 +64,13 @@ export default function ProductDetailPage() {
 
           {product && (
             <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-              {/* Image gallery */}
+              {/* Image gallery — full carousel on detail page */}
               {product.imageUrls.length > 0 ? (
-                <div className="h-64 bg-slate-100 overflow-hidden">
-                  <img
-                    src={product.imageUrls[0]}
-                    alt={product.title}
-                    className="h-full w-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                      (e.target as HTMLImageElement).parentElement!.innerHTML =
-                        '<div class="h-full flex items-center justify-center"><span class="text-5xl">📦</span><p class="text-sm text-slate-400 mt-2">Image unavailable</p></div>';
-                    }}
-                  />
-                </div>
+                <ImageCarousel
+                  imageUrls={product.imageUrls}
+                  alt={product.title}
+                  heightClass="h-64"
+                />
               ) : (
                 <div className="h-48 bg-slate-100 flex flex-col items-center justify-center">
                   <span className="text-5xl">📦</span>
@@ -121,7 +115,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Contact */}
-                <div className="pt-4 border-t">
+                <div className="pt-4 border-t space-y-2">
                   <a
                     href={whatsappLink}
                     target="_blank"
@@ -130,6 +124,16 @@ export default function ProductDetailPage() {
                   >
                     Contact Seller via WhatsApp
                   </a>
+                  {product.linkUrl && (
+                    <a
+                      href={product.linkUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors min-h-[44px]"
+                    >
+                      Shop link ↗
+                    </a>
+                  )}
                 </div>
 
                 <button
