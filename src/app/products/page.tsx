@@ -5,6 +5,7 @@ import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
 import AppShell from '@/components/AppShell';
 import StateMessage from '@/components/StateMessage';
+import ImageCarousel from '@/components/ImageCarousel';
 import { getApprovedProducts } from '@/services/browseService';
 import { PRODUCT_CATEGORIES } from '@/types/content';
 import type { ProductListing, ProductCategory } from '@/types/content';
@@ -33,69 +34,10 @@ function StatCard({ label, value }: { label: string; value: number }) {
   );
 }
 
-// ─── Inline helper: product image / fallback panel ───────────────────────────
-function ProductImagePanel({
-  imageUrls,
-  title,
-  category,
-}: {
-  imageUrls: string[];
-  title: string;
-  category: string;
-}) {
-  const [imgFailed, setImgFailed] = useState(false);
-
-  if (imageUrls.length > 0 && !imgFailed) {
-    return (
-      <div className="h-36 w-full overflow-hidden rounded-t-xl bg-slate-100">
-        <img
-          src={imageUrls[0]}
-          alt={title}
-          className="h-full w-full object-cover"
-          loading="lazy"
-          onError={() => setImgFailed(true)}
-        />
-      </div>
-    );
-  }
-
-  // Polished no-image fallback
-  return (
-    <div
-      className="h-36 w-full rounded-t-xl flex flex-col items-center justify-center gap-1"
-      style={{
-        background: 'linear-gradient(135deg, var(--color-primary-surface) 0%, #d4ede1 100%)',
-        borderBottom: '1px solid rgba(0,135,83,0.12)',
-      }}
-    >
-      <div
-        className="w-10 h-10 rounded-full flex items-center justify-center"
-        style={{ backgroundColor: 'rgba(0,135,83,0.12)' }}
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ color: 'var(--color-primary)' }}
-        >
-          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-          <path d="M3 6h18" />
-          <path d="M16 10a4 4 0 0 1-8 0" />
-        </svg>
-      </div>
-      <p className="text-xs font-medium" style={{ color: 'var(--color-primary-dark)', opacity: 0.7 }}>
-        {category}
-      </p>
-    </div>
-  );
-}
-
 // ─── Inline helper: featured product card ────────────────────────────────────
+// Featured cards use the full ImageCarousel so multi-image products are
+// swipeable at a glance. Grid (browse) cards keep first-image-only for
+// scan speed — see the "All products" grid below.
 function FeaturedProductCard({ product }: { product: ProductListing }) {
   return (
     <Link
@@ -109,11 +51,46 @@ function FeaturedProductCard({ product }: { product: ProductListing }) {
         boxShadow: 'var(--shadow-card)',
       }}
     >
-      <ProductImagePanel
-        imageUrls={product.imageUrls}
-        title={product.title}
-        category={product.category}
-      />
+      {/* Carousel for multi-image products; gradient fallback when no images */}
+      {product.imageUrls.length > 0 ? (
+        <ImageCarousel
+          imageUrls={product.imageUrls}
+          alt={product.title}
+          heightClass="h-36"
+        />
+      ) : (
+        <div
+          className="h-36 w-full flex flex-col items-center justify-center gap-1"
+          style={{
+            background: 'linear-gradient(135deg, var(--color-primary-surface) 0%, #d4ede1 100%)',
+            borderBottom: '1px solid rgba(0,135,83,0.12)',
+          }}
+        >
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: 'rgba(0,135,83,0.12)' }}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ color: 'var(--color-primary)' }}
+            >
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+              <path d="M3 6h18" />
+              <path d="M16 10a4 4 0 0 1-8 0" />
+            </svg>
+          </div>
+          <p className="text-xs font-medium" style={{ color: 'var(--color-primary-dark)', opacity: 0.7 }}>
+            {product.category}
+          </p>
+        </div>
+      )}
       <div className="p-3">
         <h3 className="font-bold text-slate-900 text-sm line-clamp-1 mb-0.5">
           {product.title}
@@ -390,6 +367,7 @@ export default function ProductsBrowsePage() {
                     {/* Image or placeholder */}
                     <div className="h-28 bg-slate-100 flex items-center justify-center">
                       {p.imageUrls.length > 0 ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={p.imageUrls[0]}
                           alt={p.title}

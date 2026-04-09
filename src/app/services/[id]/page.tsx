@@ -7,6 +7,7 @@ import AppShell from '@/components/AppShell';
 import StateMessage from '@/components/StateMessage';
 import { getServiceById } from '@/services/browseService';
 import type { ServiceListing } from '@/types/content';
+import ImageCarousel from '@/components/ImageCarousel';
 
 export default function ServiceDetailPage() {
   const params = useParams();
@@ -72,6 +73,15 @@ export default function ServiceDetailPage() {
                 </p>
               </div>
 
+              {/* Image carousel — only rendered when the listing has photos */}
+              {(service.imageUrls?.length ?? 0) > 0 && (
+                <ImageCarousel
+                  imageUrls={service.imageUrls!}
+                  alt={service.businessName}
+                  heightClass="h-64"
+                />
+              )}
+
               <div className="p-6 space-y-5">
                 {/* Description */}
                 <div>
@@ -115,6 +125,16 @@ export default function ServiceDetailPage() {
                       className="flex items-center justify-center gap-2 w-full rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors min-h-[44px]"
                     >
                       Call {service.phone}
+                    </a>
+                  )}
+                  {service.linkUrl && (
+                    <a
+                      href={service.linkUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors min-h-[44px]"
+                    >
+                      Visit website ↗
                     </a>
                   )}
                 </div>

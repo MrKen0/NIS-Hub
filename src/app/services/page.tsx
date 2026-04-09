@@ -35,12 +35,34 @@ function StatCard({ label, value }: { label: string; value: number }) {
   );
 }
 
+// ─── Inline helper: external-link icon (used in service cards) ───────────────
+function ExternalLinkIcon() {
+  return (
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
+    </svg>
+  );
+}
+
 // ─── Inline helper: featured service card ────────────────────────────────────
 function FeaturedServiceCard({ service }: { service: ServiceListing }) {
+  const hasImage = (service.imageUrls?.length ?? 0) > 0;
   return (
     <Link
       href={`/services/${service.id}`}
-      className="block rounded-xl p-4 transition-all hover:shadow-md"
+      className="block rounded-xl overflow-hidden transition-all hover:shadow-md"
       style={{
         backgroundColor: 'var(--color-surface)',
         border: '1px solid var(--color-border)',
@@ -51,33 +73,51 @@ function FeaturedServiceCard({ service }: { service: ServiceListing }) {
         boxShadow: 'var(--shadow-card)',
       }}
     >
-      <p
-        className="text-xs font-semibold uppercase tracking-wide mb-1"
-        style={{ color: 'var(--color-primary)' }}
-      >
-        {service.category}
-      </p>
-      <h3 className="font-bold text-slate-900 line-clamp-1 mb-1">{service.businessName}</h3>
-      {service.subcategory && (
-        <p className="text-xs font-medium text-slate-500 mb-2">{service.subcategory}</p>
+      {/* Top image — only when the listing has photos */}
+      {hasImage && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={service.imageUrls![0]}
+          alt={service.businessName}
+          className="h-32 w-full object-cover"
+          loading="lazy"
+        />
       )}
-      <p className="text-sm text-slate-600 line-clamp-2 mb-3">{service.description}</p>
-      <div className="flex flex-wrap gap-1">
-        {service.serviceAreas.slice(0, 2).map((a) => (
-          <span
-            key={a}
-            className="rounded-full px-2 py-0.5 text-xs"
-            style={{
-              backgroundColor: 'var(--color-primary-surface)',
-              color: 'var(--color-primary-dark)',
-            }}
-          >
-            {a}
-          </span>
-        ))}
-        {service.serviceAreas.length > 2 && (
-          <span className="text-xs text-slate-400">+{service.serviceAreas.length - 2} more</span>
+      <div className="p-4">
+        <p
+          className="text-xs font-semibold uppercase tracking-wide mb-1"
+          style={{ color: 'var(--color-primary)' }}
+        >
+          {service.category}
+        </p>
+        <h3 className="font-bold text-slate-900 line-clamp-1 mb-1">{service.businessName}</h3>
+        {service.subcategory && (
+          <p className="text-xs font-medium text-slate-500 mb-2">{service.subcategory}</p>
         )}
+        <p className="text-sm text-slate-600 line-clamp-2 mb-3">{service.description}</p>
+        {service.linkUrl && (
+          <p className="mb-2 flex items-center gap-1 text-xs text-blue-600">
+            <ExternalLinkIcon />
+            Has website
+          </p>
+        )}
+        <div className="flex flex-wrap gap-1">
+          {service.serviceAreas.slice(0, 2).map((a) => (
+            <span
+              key={a}
+              className="rounded-full px-2 py-0.5 text-xs"
+              style={{
+                backgroundColor: 'var(--color-primary-surface)',
+                color: 'var(--color-primary-dark)',
+              }}
+            >
+              {a}
+            </span>
+          ))}
+          {service.serviceAreas.length > 2 && (
+            <span className="text-xs text-slate-400">+{service.serviceAreas.length - 2} more</span>
+          )}
+        </div>
       </div>
     </Link>
   );
@@ -331,26 +371,46 @@ export default function ServicesBrowsePage() {
                     className="block rounded-xl border border-slate-200 p-4 shadow-sm hover:border-blue-300 transition-all card-lift"
                     style={{ backgroundColor: '#FEFDFB' }}
                   >
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <h3 className="font-semibold text-slate-900 line-clamp-1">{s.businessName}</h3>
-                      <span className="text-xs text-slate-500 whitespace-nowrap">{s.category}</span>
-                    </div>
-                    {s.subcategory && (
-                      <p className="text-xs text-blue-600 font-medium mb-1">{s.subcategory}</p>
-                    )}
-                    <p className="text-sm text-slate-600 line-clamp-2 mb-2">{s.description}</p>
-                    <div className="flex flex-wrap gap-1">
-                      {s.serviceAreas.slice(0, 3).map((a) => (
-                        <span key={a} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
-                          {a}
-                        </span>
-                      ))}
-                      {s.serviceAreas.length > 3 && (
-                        <span className="text-xs text-slate-400">+{s.serviceAreas.length - 3} more</span>
+                    <div className="flex gap-3">
+                      {/* Conditional thumbnail — only rendered when the listing has photos */}
+                      {s.imageUrls && s.imageUrls.length > 0 && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={s.imageUrls[0]}
+                          alt={s.businessName}
+                          className="w-16 h-16 rounded-lg object-cover flex-shrink-0 self-start"
+                          loading="lazy"
+                        />
                       )}
-                      <span className="ml-auto rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700 capitalize">
-                        {s.availabilityType}
-                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h3 className="font-semibold text-slate-900 line-clamp-1">{s.businessName}</h3>
+                          <span className="text-xs text-slate-500 whitespace-nowrap">{s.category}</span>
+                        </div>
+                        {s.subcategory && (
+                          <p className="text-xs text-blue-600 font-medium mb-1">{s.subcategory}</p>
+                        )}
+                        <p className="text-sm text-slate-600 line-clamp-2 mb-2">{s.description}</p>
+                        <div className="flex flex-wrap gap-1 items-center">
+                          {s.serviceAreas.slice(0, 3).map((a) => (
+                            <span key={a} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                              {a}
+                            </span>
+                          ))}
+                          {s.serviceAreas.length > 3 && (
+                            <span className="text-xs text-slate-400">+{s.serviceAreas.length - 3} more</span>
+                          )}
+                          <span className="ml-auto rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700 capitalize">
+                            {s.availabilityType}
+                          </span>
+                          {s.linkUrl && (
+                            <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-blue-600 flex items-center gap-1">
+                              <ExternalLinkIcon />
+                              Website
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </Link>
                 ))}
