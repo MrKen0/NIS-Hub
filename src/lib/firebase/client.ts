@@ -14,6 +14,25 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { firebaseConfig } from "./config";
 
+// Fail fast with a readable message if any client env vars are missing.
+// Without this guard the Firebase SDK throws a cryptic auth/invalid-api-key
+// error during Next.js prerender, which masks the real cause.
+const missingClientVars = [
+  ['NEXT_PUBLIC_FIREBASE_API_KEY',              firebaseConfig.apiKey],
+  ['NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',          firebaseConfig.authDomain],
+  ['NEXT_PUBLIC_FIREBASE_PROJECT_ID',           firebaseConfig.projectId],
+  ['NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',       firebaseConfig.storageBucket],
+  ['NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',  firebaseConfig.messagingSenderId],
+  ['NEXT_PUBLIC_FIREBASE_APP_ID',               firebaseConfig.appId],
+].filter(([, value]) => !value).map(([name]) => name);
+
+if (missingClientVars.length > 0) {
+  throw new Error(
+    `Missing Firebase client environment variables: ${missingClientVars.join(', ')}. ` +
+    'Add them to your Vercel project (Production, Preview, and Development) or .env.local.',
+  );
+}
+
 // Only create one Firebase app — reuse it if it already exists
 // (Next.js hot-reloads during development, so this prevents duplicates)
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
