@@ -130,7 +130,12 @@ function LatestNoticeCard({ notice }: { notice: CommunityNotice }) {
             </span>
           </div>
           <p className="text-sm text-slate-600 line-clamp-2 mb-1">{notice.body}</p>
-          <p className="text-xs text-slate-400">{formatDate(notice.createdAt)}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-400">{formatDate(notice.createdAt)}</p>
+            <p className="text-xs font-semibold" style={{ color: 'var(--color-primary)' }}>
+              View notice →
+            </p>
+          </div>
         </div>
       </div>
     </Link>
@@ -151,10 +156,15 @@ function NoticeListCard({ notice }: { notice: CommunityNotice }) {
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-slate-900 line-clamp-1">{notice.title}</h3>
           <p className="text-sm text-slate-600 line-clamp-2 mt-1">{notice.body}</p>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-xs text-slate-400">{notice.category}</span>
-            <span className="text-xs text-slate-400">&middot;</span>
-            <span className="text-xs text-slate-400">{formatDate(notice.createdAt)}</span>
+          <div className="flex items-center justify-between gap-2 mt-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400">{notice.category}</span>
+              <span className="text-xs text-slate-400">&middot;</span>
+              <span className="text-xs text-slate-400">{formatDate(notice.createdAt)}</span>
+            </div>
+            <span className="text-xs font-semibold" style={{ color: 'var(--color-primary)' }}>
+              View →
+            </span>
           </div>
         </div>
       </div>

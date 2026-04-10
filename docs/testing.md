@@ -661,3 +661,72 @@ All pre-existing tests must continue to pass.
 - `ImageCarousel` dot indicators are static (no active-slide tracking) — sufficient for mobile swipe UX
 - Browse grid cards (products) remain first-image-only for scan speed; carousel only on detail and featured slots
 - Service regular list cards show thumbnail only when photos exist; no forced empty placeholder
+
+---
+
+## Phase 6B — Carousel and click-through fixes
+
+### A. Image carousel — fitting and controls
+
+- [ ] Service detail page: image with `fit="contain"` fits inside the dark frame without being cropped
+- [ ] Product detail page: image with `fit="contain"` fits inside the dark frame without being cropped
+- [ ] Event detail page: image with `fit="contain"` fits inside the dark frame without being cropped
+- [ ] Notice detail page: image with `fit="contain"` fits inside the dark frame without being cropped
+- [ ] Portrait photo: full photo visible without side-cropping (object-contain letterboxing)
+- [ ] Wide landscape photo: fills the frame naturally with no visible empty bars (image fills width)
+- [ ] Single-image listing: no prev/next buttons, no dots shown
+- [ ] Multi-image listing (2+): prev (‹) and next (›) buttons visible at left and right of frame
+- [ ] Clicking Next advances to the next image
+- [ ] Clicking Prev goes to the previous image
+- [ ] Clicking Prev on the first image wraps to the last image
+- [ ] Clicking Next on the last image wraps to the first image
+- [ ] Active dot is solid white; inactive dots are white/40 — clearly distinguishable
+- [ ] Clicking a dot navigates directly to that image
+- [ ] Swiping left on mobile advances to the next image
+- [ ] Swiping right on mobile goes to the previous image
+- [ ] Carousel controls inside a browse card (featured product) do NOT trigger Link navigation when clicked
+- [ ] Prev/Next buttons are keyboard-focusable with visible focus ring
+- [ ] Dot buttons are keyboard-focusable with visible focus ring
+- [ ] `aria-label` present on Prev button, Next button, and each dot
+
+### B. Browse context — cover mode unchanged
+
+- [ ] Featured product card carousel: `fit="cover"` (no dark bars, image fills frame)
+- [ ] Service featured card top image: `fit="cover"` (unchanged static image)
+- [ ] Service regular list thumbnail: `fit="cover"` (small square, unchanged)
+
+### C. Events browse page — click affordance
+
+- [ ] Real event "Coming up" featured card shows "View event →" text at bottom
+- [ ] Real event "All events" list row shows "View →" text at right of metadata row
+- [ ] Demo/example event cards show no "View →" text (intentionally non-clickable)
+- [ ] Clicking a real event card navigates to `/events/{id}`
+- [ ] Clicking a demo event card does nothing (non-interactive)
+
+### D. Notices browse page — click affordance
+
+- [ ] Real notice "Latest" highlighted card shows "View notice →" text at bottom
+- [ ] Real notice "All notices" list card shows "View →" text at right of metadata row
+- [ ] Demo/example notice cards show no "View →" text (intentionally non-clickable)
+- [ ] Clicking a real notice card navigates to `/notices/{id}`
+- [ ] Clicking a demo notice card does nothing (non-interactive)
+
+### E. Events and notices detail pages
+
+- [ ] Event detail page loads and shows full event content when navigating from browse
+- [ ] Notice detail page loads and shows full notice content when navigating from browse
+- [ ] "Event not found" shown only for unknown or non-approved event IDs
+- [ ] "Notice not found" shown only for unknown or non-approved notice IDs
+
+### TypeScript + Lint
+
+```bash
+npx tsc --noEmit       # must pass with zero errors
+npx eslint src         # zero new warnings in touched files
+```
+
+### MVP limitations retained
+
+- Dots are overlaid inside the image frame (not below it) — no extra height added to cards
+- All dots are the same size; active dot is visually distinguished by opacity/colour only
+- Touch swipe threshold is 40 px — accidental micro-touches do not trigger navigation

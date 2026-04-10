@@ -79,6 +79,7 @@ export default function ServiceDetailPage() {
                   imageUrls={service.imageUrls!}
                   alt={service.businessName}
                   heightClass="h-64"
+                  fit="contain"
                 />
               )}
 

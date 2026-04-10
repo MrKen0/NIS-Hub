@@ -93,6 +93,7 @@ export default function NoticeDetailPage() {
                   imageUrls={notice.imageUrls!}
                   alt={notice.title}
                   heightClass="h-64"
+                  fit="contain"
                 />
               )}
 

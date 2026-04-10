@@ -95,6 +95,7 @@ export default function EventDetailPage() {
                   imageUrls={event.imageUrls!}
                   alt={event.title}
                   heightClass="h-64"
+                  fit="contain"
                 />
               )}
 
