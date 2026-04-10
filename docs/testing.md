@@ -730,3 +730,59 @@ npx eslint src         # zero new warnings in touched files
 - Dots are overlaid inside the image frame (not below it) — no extra height added to cards
 - All dots are the same size; active dot is visually distinguished by opacity/colour only
 - Touch swipe threshold is 40 px — accidental micro-touches do not trigger navigation
+
+---
+
+## Phase 6C — Demo card click-through fix
+
+### A. Events browse page — demo cards
+
+- [ ] Demo event cards on `/events` are clickable (rendered as `<Link>`, not `<div>`)
+- [ ] Demo event cards show "View event →" affordance text
+- [ ] Clicking a demo event card navigates to `/events/demo-1`, `/events/demo-2`, `/events/demo-3`
+- [ ] Demo event cards gain a hover state (shadow + full opacity) when hovered
+- [ ] Real event cards still navigate to their real `/events/{id}` detail pages
+
+### B. Event detail page — demo ID resolution
+
+- [ ] `/events/demo-1` opens immediately with no loading skeleton flash
+- [ ] `/events/demo-1` shows full event content: title, date/time, location, category, organiser, description
+- [ ] `/events/demo-1` shows a subtle gold "Example" badge in the header next to the title
+- [ ] `/events/demo-2` and `/events/demo-3` resolve the same way
+- [ ] Demo event detail page does not show "This event has already taken place" (demo dates are in the future)
+- [ ] Real event detail pages are unchanged — Firestore path still used for non-demo IDs
+
+### C. Notices browse page — demo cards
+
+- [ ] Demo notice cards on `/notices` are clickable (rendered as `<Link>`, not `<div>`)
+- [ ] Demo notice cards show "View notice →" affordance text
+- [ ] Clicking a demo notice card navigates to `/notices/demo-1`, `/notices/demo-2`, `/notices/demo-3`
+- [ ] Demo notice cards gain a hover state when hovered
+- [ ] Real notice cards still navigate to their real `/notices/{id}` detail pages
+
+### D. Notice detail page — demo ID resolution
+
+- [ ] `/notices/demo-1` opens immediately with no loading skeleton flash
+- [ ] `/notices/demo-1` shows full notice content: title, body, category, posted date
+- [ ] `/notices/demo-1` shows a subtle gold "Example" badge in the header next to the title
+- [ ] Demo notice meta footer shows "This is an example notice." instead of an expiry date
+- [ ] `/notices/demo-2` and `/notices/demo-3` resolve the same way
+- [ ] Real notice detail pages are unchanged
+
+### E. Not-found behaviour
+
+- [ ] Navigating to `/events/unknown-xyz` still shows "Event not found" state message
+- [ ] Navigating to `/notices/unknown-xyz` still shows "Notice not found" state message
+
+### TypeScript + Lint
+
+```bash
+npx tsc --noEmit       # must pass with zero errors
+npx eslint src         # zero new warnings in touched files
+```
+
+### MVP limitations retained
+
+- Demo data is duplicated locally in browse and detail files (no shared module) — intentional for isolation
+- Demo events use `expiresAt: '2099-12-31'` and `status: 'approved'` so they pass all detail-page guards cleanly
+- Demo notices use the same placeholder values; the meta footer shows "This is an example notice." instead of a far-future expiry date
