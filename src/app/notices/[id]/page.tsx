@@ -9,6 +9,54 @@ import { getNoticeById } from '@/services/browseService';
 import type { CommunityNotice } from '@/types/content';
 import ImageCarousel from '@/components/ImageCarousel';
 
+// ─── Demo notices ─────────────────────────────────────────────────────────────
+// These mirror the DEMO_NOTICES in notices/page.tsx. Duplicated locally to avoid
+// a shared-module dependency between two independent route segments.
+// All required CommunityNotice fields are filled with safe placeholder values.
+const DEMO_NOTICES: CommunityNotice[] = [
+  {
+    id: 'demo-1',
+    title: 'Welcome to NIS Hub!',
+    body: 'The community platform for Naijas in Stevenage is now live. Browse services, find events, post requests, and connect with your community — all in one place.',
+    category: 'Announcement',
+    expiresAt: '2099-12-31',
+    linkUrl: null,
+    imageUrls: null,
+    status: 'approved',
+    authorId: 'demo',
+    createdAt: '2026-04-01T10:00:00.000Z',
+    updatedAt: '2026-04-01T10:00:00.000Z',
+  },
+  {
+    id: 'demo-2',
+    title: 'Free CV & Job Application Workshop',
+    body: 'A local charity is offering free CV writing and job application support this Saturday. Open to all community members. Limited spaces — contact us to reserve a spot.',
+    category: 'Opportunity',
+    expiresAt: '2099-12-31',
+    linkUrl: null,
+    imageUrls: null,
+    status: 'approved',
+    authorId: 'demo',
+    createdAt: '2026-04-01T09:00:00.000Z',
+    updatedAt: '2026-04-01T09:00:00.000Z',
+  },
+  {
+    id: 'demo-3',
+    title: 'Community WhatsApp Guidelines',
+    body: 'A reminder to keep the community WhatsApp group respectful and on-topic. No spam, no unsolicited advertising. Use NIS Hub to post your services and products instead.',
+    category: 'General',
+    expiresAt: '2099-12-31',
+    linkUrl: null,
+    imageUrls: null,
+    status: 'approved',
+    authorId: 'demo',
+    createdAt: '2026-03-31T12:00:00.000Z',
+    updatedAt: '2026-03-31T12:00:00.000Z',
+  },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 function formatDateLong(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -24,16 +72,28 @@ function categoryIcon(cat: string) {
   }
 }
 
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function NoticeDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [notice, setNotice] = useState<CommunityNotice | null>(null);
-  const [loading, setLoading] = useState(true);
+
+  const routeId = typeof params.id === 'string' ? params.id : '';
+
+  // Resolve demo IDs synchronously — no loading state, no Firestore call.
+  const demoNotice = DEMO_NOTICES.find((n) => n.id === routeId) ?? null;
+
+  const [notice, setNotice] = useState<CommunityNotice | null>(demoNotice);
+  // If a demo notice resolved, skip the loading skeleton entirely.
+  const [loading, setLoading] = useState(demoNotice === null);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    if (!params.id || typeof params.id !== 'string') return;
-    getNoticeById(params.id)
+    if (!routeId) return;
+    // Demo IDs are already resolved in initial state — skip Firestore.
+    if (DEMO_NOTICES.some((n) => n.id === routeId)) return;
+
+    getNoticeById(routeId)
       .then((n) => {
         if (!n || n.status !== 'approved') {
           setNotFound(true);
@@ -43,8 +103,10 @@ export default function NoticeDetailPage() {
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
-  }, [params.id]);
+  }, [routeId]);
 
+  const isDemo = demoNotice !== null;
+  // Demo notices use expiresAt: '2099-12-31' — they will never show as expired.
   const isExpired = notice ? new Date(notice.expiresAt) < new Date() : false;
 
   return (
@@ -78,9 +140,26 @@ export default function NoticeDetailPage() {
             <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
               {/* Header */}
               <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
-                <div className="flex items-center gap-3 mb-1">
-                  <span className="text-2xl">{categoryIcon(notice.category)}</span>
-                  <h1 className="text-2xl font-bold">{notice.title}</h1>
+                <div className="flex items-start gap-3 mb-1">
+                  <span className="text-2xl flex-shrink-0">{categoryIcon(notice.category)}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <h1 className="text-2xl font-bold">{notice.title}</h1>
+                      {/* Example badge — only shown for demo content */}
+                      {isDemo && (
+                        <span
+                          className="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold self-start mt-1"
+                          style={{
+                            backgroundColor: 'rgba(207,175,90,0.25)',
+                            color: '#f5d87a',
+                            border: '1px solid rgba(207,175,90,0.5)',
+                          }}
+                        >
+                          Example
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 <p className="text-purple-100 text-sm">
                   {notice.category} &middot; Posted {formatDateLong(notice.createdAt)}
@@ -125,7 +204,9 @@ export default function NoticeDetailPage() {
 
                 {/* Meta */}
                 <div className="text-xs text-slate-400 pt-4 border-t">
-                  Expires {formatDateLong(notice.expiresAt)}
+                  {isDemo
+                    ? 'This is an example notice.'
+                    : `Expires ${formatDateLong(notice.expiresAt)}`}
                 </div>
 
                 <button

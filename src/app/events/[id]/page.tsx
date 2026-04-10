@@ -9,6 +9,76 @@ import { getEventById } from '@/services/browseService';
 import type { CommunityEvent } from '@/types/content';
 import ImageCarousel from '@/components/ImageCarousel';
 
+// ─── Demo events ──────────────────────────────────────────────────────────────
+// These mirror the DEMO_EVENTS in events/page.tsx. Duplicated locally to avoid
+// a shared-module dependency between two independent route segments.
+// All required CommunityEvent fields are filled with safe placeholder values so
+// the detail page renders without TypeScript errors or runtime crashes.
+const DEMO_EVENTS: CommunityEvent[] = [
+  {
+    id: 'demo-1',
+    title: 'Naija Jollof Night',
+    description:
+      'An evening of great food, music, and community. Bring a dish to share and enjoy the flavours of home.',
+    date: '2026-05-10',
+    time: '18:00',
+    location: 'Stevenage Leisure Centre, Town Centre',
+    category: 'Community Gathering',
+    organiser: 'NIS Hub',
+    contactLink: '',
+    expiresAt: '2099-12-31',
+    linkUrl: null,
+    imageUrls: null,
+    status: 'approved',
+    authorId: 'demo',
+    createdAt: '2026-04-01T10:00:00.000Z',
+    updatedAt: '2026-04-01T10:00:00.000Z',
+    rsvpCount: 0,
+  },
+  {
+    id: 'demo-2',
+    title: 'Kids Football & Sports Day',
+    description:
+      'Fun football sessions for children aged 5–14. Parents welcome. Organised by community volunteers.',
+    date: '2026-05-24',
+    time: '10:00',
+    location: 'Fairlands Valley Park',
+    category: 'Sports',
+    organiser: 'NIS Hub',
+    contactLink: '',
+    expiresAt: '2099-12-31',
+    linkUrl: null,
+    imageUrls: null,
+    status: 'approved',
+    authorId: 'demo',
+    createdAt: '2026-04-01T10:00:00.000Z',
+    updatedAt: '2026-04-01T10:00:00.000Z',
+    rsvpCount: 0,
+  },
+  {
+    id: 'demo-3',
+    title: 'Money & Finance Workshop',
+    description:
+      'Practical guidance on budgeting, savings, and building credit in the UK. Open to all community members.',
+    date: '2026-06-07',
+    time: '14:00',
+    location: 'Stevenage Central Library',
+    category: 'Workshop',
+    organiser: 'NIS Hub',
+    contactLink: '',
+    expiresAt: '2099-12-31',
+    linkUrl: null,
+    imageUrls: null,
+    status: 'approved',
+    authorId: 'demo',
+    createdAt: '2026-04-01T10:00:00.000Z',
+    updatedAt: '2026-04-01T10:00:00.000Z',
+    rsvpCount: 0,
+  },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 function formatDateLong(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -21,16 +91,28 @@ function formatTime(time: string) {
   return `${hour % 12 || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
 }
 
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [event, setEvent] = useState<CommunityEvent | null>(null);
-  const [loading, setLoading] = useState(true);
+
+  const routeId = typeof params.id === 'string' ? params.id : '';
+
+  // Resolve demo IDs synchronously — no loading state, no Firestore call.
+  const demoEvent = DEMO_EVENTS.find((e) => e.id === routeId) ?? null;
+
+  const [event, setEvent] = useState<CommunityEvent | null>(demoEvent);
+  // If a demo event resolved, skip the loading skeleton entirely.
+  const [loading, setLoading] = useState(demoEvent === null);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    if (!params.id || typeof params.id !== 'string') return;
-    getEventById(params.id)
+    if (!routeId) return;
+    // Demo IDs are already resolved in initial state — skip Firestore.
+    if (DEMO_EVENTS.some((e) => e.id === routeId)) return;
+
+    getEventById(routeId)
       .then((ev) => {
         if (!ev || ev.status !== 'approved') {
           setNotFound(true);
@@ -40,8 +122,9 @@ export default function EventDetailPage() {
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
-  }, [params.id]);
+  }, [routeId]);
 
+  const isDemo = demoEvent !== null;
   const isPast = event ? new Date(event.date) < new Date() : false;
 
   const contactUrl = event?.contactLink
@@ -83,7 +166,22 @@ export default function EventDetailPage() {
             <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
               {/* Header */}
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
-                <h1 className="text-2xl font-bold mb-1">{event.title}</h1>
+                <div className="flex items-start justify-between gap-3 mb-1">
+                  <h1 className="text-2xl font-bold">{event.title}</h1>
+                  {/* Example badge — only shown for demo content */}
+                  {isDemo && (
+                    <span
+                      className="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold self-start mt-0.5"
+                      style={{
+                        backgroundColor: 'rgba(207,175,90,0.25)',
+                        color: '#f5d87a',
+                        border: '1px solid rgba(207,175,90,0.5)',
+                      }}
+                    >
+                      Example
+                    </span>
+                  )}
+                </div>
                 <p className="text-blue-100 text-sm">
                   {formatDateLong(event.date)} at {formatTime(event.time)}
                 </p>
@@ -154,7 +252,7 @@ export default function EventDetailPage() {
                   </div>
                 ) : null}
 
-                {isPast && (
+                {isPast && !isDemo && (
                   <div className="rounded-lg bg-slate-100 p-4 text-center">
                     <p className="text-slate-600 text-sm">This event has already taken place.</p>
                   </div>

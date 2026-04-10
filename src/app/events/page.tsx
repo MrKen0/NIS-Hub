@@ -165,11 +165,12 @@ function FeaturedEventCard({ event }: { event: CommunityEvent }) {
   );
 }
 
-// ─── Inline helper: demo event card (non-clickable) ──────────────────────────
+// ─── Inline helper: demo event card (clickable — opens example detail page) ───
 function DemoEventCard({ event }: { event: (typeof DEMO_EVENTS)[number] }) {
   return (
-    <div
-      className="flex gap-3 rounded-xl p-4 opacity-80"
+    <Link
+      href={`/events/${event.id}`}
+      className="flex gap-3 rounded-xl p-4 opacity-80 transition-all hover:shadow-md hover:opacity-100"
       style={{
         backgroundColor: 'var(--color-surface)',
         border: '1px solid var(--color-border)',
@@ -195,8 +196,11 @@ function DemoEventCard({ event }: { event: (typeof DEMO_EVENTS)[number] }) {
           {formatDate(event.date)} at {formatTime(event.time)} &middot; {event.location}
         </p>
         <p className="text-sm text-slate-600 line-clamp-2">{event.description}</p>
+        <p className="mt-2 text-xs font-semibold" style={{ color: 'var(--color-primary)' }}>
+          View event →
+        </p>
       </div>
-    </div>
+    </Link>
   );
 }
 

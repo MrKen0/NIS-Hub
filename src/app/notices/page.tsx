@@ -172,11 +172,12 @@ function NoticeListCard({ notice }: { notice: CommunityNotice }) {
   );
 }
 
-// ─── Inline helper: demo notice card (non-clickable) ─────────────────────────
+// ─── Inline helper: demo notice card (clickable — opens example detail page) ──
 function DemoNoticeCard({ notice }: { notice: (typeof DEMO_NOTICES)[number] }) {
   return (
-    <div
-      className="block rounded-xl p-4 opacity-80"
+    <Link
+      href={`/notices/${notice.id}`}
+      className="block rounded-xl p-4 opacity-80 transition-all hover:shadow-md hover:opacity-100"
       style={{
         backgroundColor: 'var(--color-surface)',
         border: '1px solid var(--color-border)',
@@ -200,9 +201,12 @@ function DemoNoticeCard({ notice }: { notice: (typeof DEMO_NOTICES)[number] }) {
             </span>
           </div>
           <p className="text-sm text-slate-600 line-clamp-2">{notice.body}</p>
+          <p className="mt-2 text-xs font-semibold" style={{ color: 'var(--color-primary)' }}>
+            View notice →
+          </p>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
