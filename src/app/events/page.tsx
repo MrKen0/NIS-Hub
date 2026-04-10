@@ -157,6 +157,9 @@ function FeaturedEventCard({ event }: { event: CommunityEvent }) {
             <span className="text-xs text-slate-400">{event.rsvpCount} going</span>
           )}
         </div>
+        <p className="mt-2 text-xs font-semibold" style={{ color: 'var(--color-primary)' }}>
+          View event →
+        </p>
       </div>
     </Link>
   );
@@ -375,14 +378,19 @@ export default function EventsBrowsePage() {
                         <p className="text-xs text-slate-500 mt-0.5">
                           {formatDate(ev.date)} at {formatTime(ev.time)} &middot; {ev.location}
                         </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-slate-400">{ev.category}</span>
-                          {ev.organiser && (
-                            <span className="text-xs text-slate-400">by {ev.organiser}</span>
-                          )}
-                          {ev.rsvpCount > 0 && (
-                            <span className="text-xs text-slate-400">{ev.rsvpCount} going</span>
-                          )}
+                        <div className="flex items-center justify-between gap-2 mt-1 flex-wrap">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-slate-400">{ev.category}</span>
+                            {ev.organiser && (
+                              <span className="text-xs text-slate-400">by {ev.organiser}</span>
+                            )}
+                            {ev.rsvpCount > 0 && (
+                              <span className="text-xs text-slate-400">{ev.rsvpCount} going</span>
+                            )}
+                          </div>
+                          <span className="text-xs font-semibold" style={{ color: 'var(--color-primary)' }}>
+                            View →
+                          </span>
                         </div>
                       </div>
                     </Link>

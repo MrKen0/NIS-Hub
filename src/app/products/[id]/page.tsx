@@ -70,6 +70,7 @@ export default function ProductDetailPage() {
                   imageUrls={product.imageUrls}
                   alt={product.title}
                   heightClass="h-64"
+                  fit="contain"
                 />
               ) : (
                 <div className="h-48 bg-slate-100 flex flex-col items-center justify-center">
